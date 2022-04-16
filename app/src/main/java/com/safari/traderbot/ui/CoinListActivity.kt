@@ -3,6 +3,7 @@ package com.safari.traderbot.ui
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.lifecycleScope
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityCoinListBinding
@@ -23,9 +24,11 @@ class CoinListActivity : AppCompatActivity() {
         binding.rvCoins.adapter = coinAdapter
 
         lifecycleScope.launchWhenCreated {
+            binding.pgLoading.visibility = View.VISIBLE
             val marketList = Provider.getCoinexService().getMarketList()
             coinAdapter.submitList(marketList.data)
-            Log.d("coinList", Provider.getCoinexService().getMarketList().toString())
+            binding.pgLoading.visibility = View.GONE
+            Log.d("coinList", marketList.toString())
         }
 
 

@@ -2,6 +2,7 @@ package com.safari.traderbot.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -49,7 +50,9 @@ class TradeOrderActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
 
                 try {
-
+                    withContext(Dispatchers.Main) {
+                        binding.pgLoading.visibility = View.VISIBLE
+                    }
                     val putMarkerOrderResponse = Provider.getStockApi().putMarketOrder(
                         binding.marketNameDropDown.selectedItem.toString(),
                         StockApi.ORDER_TYPE.getTypeByString(binding.typeDropDown.selectedItem.toString()),
@@ -57,7 +60,9 @@ class TradeOrderActivity : AppCompatActivity() {
                     )
 
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@TradeOrderActivity, putMarkerOrderResponse, Toast.LENGTH_LONG).show()
+                        binding.pgLoading.visibility = View.GONE
+                        binding.tvResult.visibility = View.VISIBLE
+                        binding.tvResult.text = putMarkerOrderResponse
                     }
 
                     Log.d("putmarkerorder", putMarkerOrderResponse)

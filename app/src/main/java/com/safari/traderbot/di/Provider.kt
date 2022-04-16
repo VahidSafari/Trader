@@ -1,8 +1,10 @@
 package com.safari.traderbot.di
 
 import com.safari.traderbot.network.CoinexService
+import com.safari.traderbot.rest.StockApi
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -17,7 +19,9 @@ class Provider {
 
         private var coinexService: CoinexService? = null
 
-        private const val BASE_URL = "https://api.coinex.com/v1/"
+        private var stockApi: StockApi? = null
+
+        const val BASE_URL = "https://api.coinex.com/v1/"
 
         const val ACCESS_ID_HEADER_KEY = "access_id"
 
@@ -29,6 +33,11 @@ class Provider {
 
         fun getOkhttpClient(): OkHttpClient {
             if (okHttpClient == null) {
+
+                val loggingInterceptor = HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                }
+
                 okHttpClient = OkHttpClient.Builder()
                     .connectTimeout(10, TimeUnit.SECONDS)
                     .readTimeout(10, TimeUnit.SECONDS)
@@ -41,6 +50,7 @@ class Provider {
                             .build()
                         chain.proceed(request)
                     }
+                    .addInterceptor(loggingInterceptor)
                     .build()
             }
             return okHttpClient!!
@@ -62,6 +72,13 @@ class Provider {
                 coinexService = getRetrofit().create(CoinexService::class.java)
             }
             return coinexService!!
+        }
+
+        fun getStockApi(): StockApi {
+            if (stockApi == null) {
+                stockApi = StockApi(BASE_URL, ACCESS_ID_VALUE, SECRET_KEY_VALUE)
+            }
+            return stockApi!!
         }
 
     }

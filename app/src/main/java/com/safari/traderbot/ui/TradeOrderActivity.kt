@@ -1,11 +1,17 @@
 package com.safari.traderbot.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
 import com.safari.traderbot.di.Provider
+import com.safari.traderbot.rest.StockApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class TradeOrderActivity : AppCompatActivity() {
@@ -36,18 +42,31 @@ class TradeOrderActivity : AppCompatActivity() {
         binding.typeDropDown.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
-            OrderType.values()
+            StockApi.ORDER_TYPE.values()
         )
 
         binding.submitOrderButton.setOnClickListener {
-            lifecycleScope.launchWhenCreated {
-                Provider.getCoinexService().submitMarketOrder(
-                    market = binding.marketNameDropDown.selectedItem.toString(),
-                    type = binding.typeDropDown.selectedItem.toString(),
-                    amount = binding.amount.text.toString(),
-                    price = binding.price.text.toString(),
-                    tonce = Date().time
-                )
+            lifecycleScope.launch(Dispatchers.IO) {
+
+                try {
+
+                    val putMarkerOrderResponse = Provider.getStockApi().putMarketOrder(
+                        binding.marketNameDropDown.selectedItem.toString(),
+                        StockApi.ORDER_TYPE.getTypeByString(binding.typeDropDown.selectedItem.toString()),
+                        binding.amount.text.toString().toFloat()
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@TradeOrderActivity, putMarkerOrderResponse, Toast.LENGTH_LONG).show()
+                    }
+
+                    Log.d("putmarkerorder", putMarkerOrderResponse)
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+
             }
         }
 

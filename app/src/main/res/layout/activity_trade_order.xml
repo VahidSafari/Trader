@@ -27,14 +27,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
+        android:inputType="numberDecimal"
         android:hint="@string/amount" />
-
-    <EditText
-        android:id="@+id/price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:hint="@string/price" />
 
     <Button
         android:id="@+id/submit_order_button"

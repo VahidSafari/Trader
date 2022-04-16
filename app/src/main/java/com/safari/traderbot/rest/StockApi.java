@@ -1,0 +1,202 @@
+package com.safari.traderbot.rest;
+
+import android.util.Log;
+
+import com.safari.traderbot.utils.MD5Util;
+
+import org.apache.http.HttpException;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+
+public class StockApi {
+
+    private String secret_key;
+
+    private String accessId;
+
+    private final String baseUrl;
+
+    public StockApi(String baseUrl, String accessId, String secret_key) {
+        this.accessId = accessId;
+        this.secret_key = secret_key;
+        this.baseUrl = baseUrl;
+    }
+
+    public StockApi(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    private final String TICKER_URL = "market/ticker";
+
+    private final String DEPTH_URL = "market/depth";
+
+    private final String TRADES_URL = "market/deals";
+
+    private final String KLINE_URL = "market/kline";
+
+    private final String BALANCE_URL = "balance/";
+
+    private final String PENDING_ORDER_URL = "order/pending";
+
+    private final String FINISHED_ORDER_URL = "order/finished";
+
+    private final String PUT_LIMIT_URL = "order/limit";
+
+    private final String PUT_MARKET_URL = "order/market";
+
+    private final String CANCEL_ORDER_URL = "order/pending";
+
+    private enum HTTP_METHOD {
+        GET, POST, DELETE;
+    }
+
+    public static enum MARKET {
+        MARKET_ETHCNY("ETHCNY"),
+        MARKET_ETHBTC("ETHBTC"),
+        MARKET_BTCCNY("BTCCNY");
+
+        private String typeName;
+
+        MARKET(String typeName) {
+            this.typeName = typeName;
+        }
+
+        public String toString() {
+            return this.typeName;
+        }
+    }
+
+    public static enum ORDER_TYPE {
+        ORDER_TYPE_SELL("sell"),
+        ORDER_TYPE_BUY("buy"),
+        UNSUPPORTED("");
+
+        private String typeName;
+
+        ORDER_TYPE(String typeName) {
+            this.typeName = typeName;
+        }
+
+        public String toString() {
+            return this.typeName;
+        }
+
+        public static ORDER_TYPE getTypeByString(String typeName) {
+            switch (typeName) {
+                case "buy":
+                case "BUY":
+                    return ORDER_TYPE_BUY;
+                case "sell":
+                case "SELL":
+                    return ORDER_TYPE_SELL;
+                default:
+                    return UNSUPPORTED;
+            }
+        }
+
+    }
+
+    private String doRequest(String url, Map<String, String> paramMap, HTTP_METHOD method) throws HttpException, IOException {
+        if (paramMap == null) {
+            paramMap = new HashMap<>();
+        }
+        paramMap.put("access_id", this.accessId);
+        paramMap.put("tonce", Long.toString(System.currentTimeMillis()));
+        String authorization = MD5Util.buildSignature(paramMap, this.secret_key);
+        HttpUtilManager httpUtil = HttpUtilManager.getInstance();
+        switch (method) {
+            case GET:
+                return httpUtil.requestHttpGet(baseUrl, url, paramMap, authorization);
+
+            case POST:
+                return httpUtil.requestHttpPost(baseUrl, url, paramMap, authorization);
+
+            case DELETE:
+                return httpUtil.requestHttpDelete(baseUrl, url, paramMap, authorization);
+
+            default:
+                return httpUtil.requestHttpGet(baseUrl, url, paramMap, authorization);
+        }
+    }
+
+    public String ticker(MARKET market) throws HttpException, IOException {
+
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        return doRequest(TICKER_URL, param, HTTP_METHOD.GET);
+    }
+
+    public String depth(MARKET market, String merge, Integer limit) throws HttpException, IOException {
+
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        param.put("merge", merge);
+        param.put("limit", String.valueOf(limit));
+        return doRequest(DEPTH_URL, param, HTTP_METHOD.GET);
+    }
+
+    public String trades(MARKET market) throws HttpException, IOException {
+
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        return doRequest(TRADES_URL, param, HTTP_METHOD.GET);
+    }
+
+    public String kline(MARKET market, String type) throws HttpException, IOException {
+
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        param.put("type", type);
+        return doRequest(KLINE_URL, param, HTTP_METHOD.GET);
+    }
+
+    public String account() throws HttpException, IOException {
+        return doRequest(BALANCE_URL, null, HTTP_METHOD.GET);
+    }
+
+    public String pendingOrder(MARKET market, int page, int account) throws HttpException, IOException {
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        param.put("page", String.valueOf(page));
+        param.put("account", String.valueOf(account));
+        return doRequest(PENDING_ORDER_URL, param, HTTP_METHOD.GET);
+    }
+
+    public String finishedOrder(MARKET market, String page, String account) throws HttpException, IOException {
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        param.put("page", page);
+        param.put("account", account);
+        return doRequest(FINISHED_ORDER_URL, param, HTTP_METHOD.GET);
+    }
+
+    public String putLimitOrder(MARKET market, ORDER_TYPE type, float amount, float price) throws HttpException, IOException {
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        param.put("type", type.toString());
+        param.put("amount", String.valueOf(amount));
+        param.put("price", String.valueOf(price));
+        return doRequest(PUT_LIMIT_URL, param, HTTP_METHOD.POST);
+    }
+
+    public String putMarketOrder(String market, ORDER_TYPE type, float amount) throws HttpException, IOException {
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market);
+        param.put("type", type.toString());
+        param.put("amount", String.valueOf(amount));
+
+        Log.d("markerOrderParam", market + type.toString() + String.valueOf(amount));
+
+        return doRequest(PUT_MARKET_URL, param, HTTP_METHOD.POST);
+    }
+
+    public String cancelOrder(MARKET market, String orderID) throws HttpException, IOException {
+        HashMap<String, String> param = new HashMap<>();
+        param.put("market", market.toString());
+        param.put("order_id", orderID);
+        return doRequest(CANCEL_ORDER_URL, param, HTTP_METHOD.DELETE);
+    }
+}

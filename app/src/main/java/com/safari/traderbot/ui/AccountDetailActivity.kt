@@ -3,6 +3,7 @@ package com.safari.traderbot.ui
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.safari.traderbot.R
 import com.safari.traderbot.di.Provider
@@ -14,8 +15,9 @@ class AccountDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_account_detail)
 
         lifecycleScope.launchWhenCreated {
-            Provider.getCoinexService().getBalanceInfo(Date().time)
-            Log.d("balanceInfo", Provider.getCoinexService().getBalanceInfo(Date().time).toString())
+            val balanceInfo = Provider.getCoinexService().getBalanceInfo(Date().time)
+            Log.d("balanceInfo", balanceInfo.toString())
+            Toast.makeText(this@AccountDetailActivity, balanceInfo.toString(), Toast.LENGTH_LONG).show()
         }
 
     }

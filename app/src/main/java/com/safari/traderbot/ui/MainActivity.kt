@@ -1,9 +1,12 @@
 package com.safari.traderbot.ui
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.safari.traderbot.databinding.ActivityMainBinding
+import com.safari.traderbot.service.TrailingStopService
+import com.safari.traderbot.utils.isServiceRunning
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,6 +29,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, TradeOrderActivity::class.java))
         }
 
+        if (!isServiceRunning(this, TrailingStopService::class.java)) {
+            startService(Intent(applicationContext, TrailingStopService::class.java))
+            Log.d("trailingStopStrategy", "service started")
+        }
 
     }
 }

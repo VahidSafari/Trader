@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 interface MarketDataSource {
     fun getMarketInfo(): Flow<StockTick>
     suspend fun getMarketList()
-    fun searchInMarkets(phrase: String)
+    fun searchInMarkets(phrase: String): List<Market>
 }

@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityCoinListBinding
 import com.safari.traderbot.di.Provider
+import com.safari.traderbot.model.Market
 
 class CoinListActivity : AppCompatActivity() {
 
@@ -26,7 +27,7 @@ class CoinListActivity : AppCompatActivity() {
         lifecycleScope.launchWhenCreated {
             binding.pgLoading.visibility = View.VISIBLE
             val marketList = Provider.getCoinexService().getMarketList()
-            coinAdapter.submitList(marketList.data)
+            coinAdapter.submitList(marketList.data?.map { Market(it) })
             binding.pgLoading.visibility = View.GONE
             Log.d("coinList", marketList.toString())
         }

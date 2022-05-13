@@ -6,15 +6,16 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.safari.traderbot.databinding.ItemCoinBinding
+import com.safari.traderbot.model.Market
 
-class CoinAdapter : ListAdapter<String, CoinAdapter.CoinViewHolder>(
-    object : DiffUtil.ItemCallback<String>() {
-        override fun areItemsTheSame(p0: String, p1: String): Boolean {
-            return p0 == p1;
+class CoinAdapter : ListAdapter<Market, CoinAdapter.CoinViewHolder>(
+    object : DiffUtil.ItemCallback<Market>() {
+        override fun areItemsTheSame(m1: Market, m2: Market): Boolean {
+            return m1 == m2
         }
 
-        override fun areContentsTheSame(p0: String, p1: String): Boolean {
-            return p0 == p1;
+        override fun areContentsTheSame(m1: Market, m2: Market): Boolean {
+            return m1.name == m2.name
         }
 
     }
@@ -22,8 +23,8 @@ class CoinAdapter : ListAdapter<String, CoinAdapter.CoinViewHolder>(
     class CoinViewHolder(private val binding: ItemCoinBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(coinName: String) {
-            binding.coinName.text = coinName
+        fun bind(market: Market) {
+            binding.coinName.text = market.name
         }
 
     }

@@ -1,5 +1,6 @@
 package com.safari.traderbot.data
 
+import com.safari.traderbot.model.Market
 import com.safari.traderbot.model.StockTick
 import kotlinx.coroutines.flow.flow
 
@@ -21,8 +22,13 @@ class MarketMockDataSourceImpl : MarketDataSource {
         emit(StockTick(3.4, 6.8, 1.6, 4.5))
     }
 
-    override fun getMarketList() {
+    override suspend fun getMarketList() {
         TODO("Not yet implemented")
     }
+
+    override fun searchInMarkets(phrase: String): List<Market> {
+        TODO("Not yet implemented")
+    }
+
 
 }

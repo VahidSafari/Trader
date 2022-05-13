@@ -13,7 +13,7 @@ import retrofit2.http.*
 interface CoinexService {
 
     @GET("market/list")
-    suspend fun getMarketList(): GenericResponse<List<Market>?>
+    suspend fun getMarketList(): GenericResponse<List<String>?>
 
     @GET("balance/info")
     suspend fun getBalanceInfo(

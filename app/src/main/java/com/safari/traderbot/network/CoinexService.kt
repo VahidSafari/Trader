@@ -4,6 +4,7 @@ import com.safari.traderbot.di.Provider
 import com.safari.traderbot.di.Provider.Companion.ACCESS_ID_HEADER_KEY
 import com.safari.traderbot.di.Provider.Companion.ACCESS_ID_VALUE
 import com.safari.traderbot.model.GenericResponse
+import com.safari.traderbot.model.Market
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.balanceinfo.Data
 import com.safari.traderbot.model.marketorder.MarkerOrderParam
@@ -12,7 +13,7 @@ import retrofit2.http.*
 interface CoinexService {
 
     @GET("market/list")
-    suspend fun getMarketList(): GenericResponse<List<String>?>
+    suspend fun getMarketList(): GenericResponse<List<Market>?>
 
     @GET("balance/info")
     suspend fun getBalanceInfo(

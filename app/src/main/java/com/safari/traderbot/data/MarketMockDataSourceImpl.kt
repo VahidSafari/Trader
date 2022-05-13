@@ -21,4 +21,8 @@ class MarketMockDataSourceImpl : MarketDataSource {
         emit(StockTick(3.4, 6.8, 1.6, 4.5))
     }
 
+    override fun getMarketList() {
+        TODO("Not yet implemented")
+    }
+
 }

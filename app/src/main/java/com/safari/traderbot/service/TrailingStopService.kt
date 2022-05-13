@@ -52,7 +52,7 @@ class TrailingStopService : Service() {
                             "trailingStopStrategy",
                             "stop exceeded -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
                         )
-                        TODO("PUT MARKER ORDER")
+//                        TODO("PUT MARKER ORDER")
                     }
                     else -> {
                         Log.d(

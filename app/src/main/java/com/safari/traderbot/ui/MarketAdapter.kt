@@ -10,10 +10,7 @@ import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ItemMarketBinding
 import com.safari.traderbot.model.Market
 
-class MarketAdapter(
-    val defaultItemColor: Int,
-    val selectedItemColor: Int,
-) : ListAdapter<Market, MarketAdapter.MarketViewHolder>(
+class MarketAdapter: ListAdapter<Market, MarketAdapter.MarketViewHolder>(
     object : DiffUtil.ItemCallback<Market>() {
         override fun areItemsTheSame(p0: Market, p1: Market): Boolean {
             return p0.id == p1.id
@@ -27,7 +24,6 @@ class MarketAdapter(
 ) {
 
     lateinit var selectedMarket: Triple<Int,Int, String>
-    lateinit var attachedRecyclerView: RecyclerView
 
     inner class MarketViewHolder(private val binding: ItemMarketBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -71,8 +67,4 @@ class MarketAdapter(
         viewHolder.bind(currentList[position])
     }
 
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        attachedRecyclerView = recyclerView
-        super.onAttachedToRecyclerView(recyclerView)
-    }
 }

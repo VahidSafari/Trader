@@ -31,10 +31,7 @@ class TradeOrderActivity : AppCompatActivity() {
         binding = ActivityTradeOrderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        marketAdapter = MarketAdapter(
-            binding.root.context.resources.getColor(R.color.grey),
-            binding.root.context.resources.getColor(R.color.green),
-        )
+        marketAdapter = MarketAdapter()
         binding.rvMarkets.adapter = marketAdapter
 
         lifecycleScope.launchWhenCreated {

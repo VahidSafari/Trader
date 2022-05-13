@@ -21,7 +21,7 @@ class MarketDefaultDataSource: MarketDataSource {
 
     override suspend fun getMarketList() {
         Log.d("flowtest", "market list received!")
-        markets = coinexService.getMarketList().data!!.map { Market(it) }
+        markets = coinexService.getMarketList().data!!.mapIndexed { index, str -> Market(index, str) }
         marketFlow = flowOf(markets)
     }
 

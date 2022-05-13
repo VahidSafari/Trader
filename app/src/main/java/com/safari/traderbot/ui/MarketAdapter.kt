@@ -1,10 +1,12 @@
 package com.safari.traderbot.ui
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ItemMarketBinding
 import com.safari.traderbot.model.Market
 
@@ -14,7 +16,7 @@ class MarketAdapter(
 ) : ListAdapter<Market, MarketAdapter.MarketViewHolder>(
     object : DiffUtil.ItemCallback<Market>() {
         override fun areItemsTheSame(p0: Market, p1: Market): Boolean {
-            return p0 == p1
+            return p0.id == p1.id
         }
 
         override fun areContentsTheSame(p0: Market, p1: Market): Boolean {
@@ -24,29 +26,35 @@ class MarketAdapter(
     }
 ) {
 
-    lateinit var selectedMarket: Pair<Int, String>
+    lateinit var selectedMarket: Triple<Int,Int, String>
     lateinit var attachedRecyclerView: RecyclerView
 
     inner class MarketViewHolder(private val binding: ItemMarketBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(market: Market) {
-            binding.marketName.text = market.name
-        }
+        lateinit var market: Market
 
-        fun setClickListeners() {
-            binding.root.setOnClickListener {
-                if (::selectedMarket.isInitialized) {
-                    (attachedRecyclerView.findViewHolderForAdapterPosition(selectedMarket.first) as MarketViewHolder)
-                        .setItemBackgroundColor(defaultItemColor)
-                }
-                setItemBackgroundColor(selectedItemColor)
-                selectedMarket = Pair(this.adapterPosition, binding.marketName.text.toString())
+        fun bind(market: Market) {
+            this.market = market
+            binding.marketName.text = market.name
+            if (::selectedMarket.isInitialized && this.market.id == selectedMarket.first) {
+                setItemBackgroundColor(R.color.green)
+            } else {
+                setItemBackgroundColor(R.color.grey)
             }
         }
 
-        private fun setItemBackgroundColor(color: Int) {
-            binding.root.setBackgroundColor(color)
+        fun setClickListeners() {
+            this.itemView.setOnClickListener {
+                if (::selectedMarket.isInitialized) { notifyDataSetChanged() }
+                setItemBackgroundColor(R.color.green)
+                selectedMarket = Triple(market.id, this.layoutPosition, binding.marketName.text.toString())
+            }
+        }
+
+        private fun setItemBackgroundColor(colorRes: Int) {
+            binding.marketName.setBackgroundResource(colorRes)
+            Log.d("setItemBackgroundColor", "${binding.marketName.text}")
         }
 
     }
@@ -54,7 +62,9 @@ class MarketAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, p1: Int): MarketViewHolder {
         return MarketViewHolder(
             ItemMarketBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        )
+        ).apply {
+            setClickListeners()
+        }
     }
 
     override fun onBindViewHolder(viewHolder: MarketViewHolder, position: Int) {

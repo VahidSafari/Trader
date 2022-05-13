@@ -65,7 +65,7 @@ class TradeOrderActivity : AppCompatActivity() {
                         binding.pgLoading.visibility = View.VISIBLE
                     }
                     val putMarkerOrderResponse = Provider.getStockApi().putMarketOrder(
-                        marketAdapter.selectedMarket.second,
+                        marketAdapter.selectedMarket.third,
                         StockApi.ORDER_TYPE.getTypeByString(binding.typeDropDown.selectedItem.toString()),
                         binding.amount.text.toString().toFloat()
                     )

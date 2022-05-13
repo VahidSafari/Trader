@@ -27,7 +27,7 @@ class CoinListActivity : AppCompatActivity() {
         lifecycleScope.launchWhenCreated {
             binding.pgLoading.visibility = View.VISIBLE
             val marketList = Provider.getCoinexService().getMarketList()
-            coinAdapter.submitList(marketList.data?.map { Market(it) })
+            coinAdapter.submitList(marketList.data?.mapIndexed { index, str -> Market(index, str) })
             binding.pgLoading.visibility = View.GONE
             Log.d("coinList", marketList.toString())
         }

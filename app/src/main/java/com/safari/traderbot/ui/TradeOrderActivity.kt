@@ -8,12 +8,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
+import com.google.gson.reflect.TypeToken
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
 import com.safari.traderbot.di.Provider
+import com.safari.traderbot.model.GenericResponse
+import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.rest.StockApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -64,13 +67,26 @@ class TradeOrderActivity : AppCompatActivity() {
                     val putMarkerOrderResponse = Provider.getStockApi().putMarketOrder(
                         marketAdapter.selectedMarket.third,
                         StockApi.ORDER_TYPE.getTypeByString(binding.typeDropDown.selectedItem.toString()),
-                        binding.amount.text.toString().toFloat()
+                        binding.amount.text.toString()
+                    )
+
+                    val data: GenericResponse<String> = Provider.getGson().fromJson(
+                        putMarkerOrderResponse,
+                        object : TypeToken<GenericResponse<MarketOrderResponse?>?>() {}.type
                     )
 
                     withContext(Dispatchers.Main) {
                         binding.pgLoading.visibility = View.GONE
                         binding.tvResult.visibility = View.VISIBLE
-                        binding.tvResult.text = putMarkerOrderResponse
+                        binding.tvResult.text = data.message
+                        Snackbar.make(
+                            binding.root,
+                            data.message,
+                            Snackbar.LENGTH_LONG
+                        ).apply {
+                            setAction(R.string.close) { dismiss() }
+                            show()
+                        }
                     }
 
                     Log.d("putmarkerorder", putMarkerOrderResponse)

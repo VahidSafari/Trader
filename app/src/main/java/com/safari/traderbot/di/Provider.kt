@@ -1,5 +1,6 @@
 package com.safari.traderbot.di
 
+import com.google.gson.Gson
 import com.safari.traderbot.network.CoinexService
 import com.safari.traderbot.rest.StockApi
 import okhttp3.OkHttpClient
@@ -20,6 +21,8 @@ class Provider {
         private var coinexService: CoinexService? = null
 
         private var stockApi: StockApi? = null
+
+        private var gson: Gson? = null
 
         const val BASE_URL = "https://api.coinex.com/v1/"
 
@@ -80,6 +83,8 @@ class Provider {
             }
             return stockApi!!
         }
+
+        fun getGson(): Gson = gson ?: Gson().apply { gson = this }
 
     }
 

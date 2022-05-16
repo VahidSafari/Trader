@@ -182,13 +182,13 @@ public class StockApi {
         return doRequest(PUT_LIMIT_URL, param, HTTP_METHOD.POST);
     }
 
-    public String putMarketOrder(String market, ORDER_TYPE type, float amount) throws HttpException, IOException {
+    public String putMarketOrder(String market, ORDER_TYPE type, String amount) throws HttpException, IOException {
         HashMap<String, String> param = new HashMap<>();
         param.put("market", market);
         param.put("type", type.toString());
-        param.put("amount", String.valueOf(amount));
+        param.put("amount", amount);
 
-        Log.d("markerOrderParam", market + type.toString() + String.valueOf(amount));
+        Log.d("markerOrderParam", market + ", " + type + ", " + amount);
 
         return doRequest(PUT_MARKET_URL, param, HTTP_METHOD.POST);
     }

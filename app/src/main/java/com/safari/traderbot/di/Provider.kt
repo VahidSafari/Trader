@@ -44,15 +44,6 @@ class Provider {
                 okHttpClient = OkHttpClient.Builder()
                     .connectTimeout(10, TimeUnit.SECONDS)
                     .readTimeout(10, TimeUnit.SECONDS)
-                    .addInterceptor { chain ->
-                        val request: Request = chain
-                            .request()
-                            .newBuilder()
-                            .addHeader(ACCESS_ID_HEADER_KEY, ACCESS_ID_VALUE)
-                            .addHeader(SECRET_KEY_HEADER_KEY, SECRET_KEY_VALUE)
-                            .build()
-                        chain.proceed(request)
-                    }
                     .addInterceptor(loggingInterceptor)
                     .build()
             }

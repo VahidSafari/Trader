@@ -2,10 +2,12 @@ package com.safari.traderbot.data
 
 import android.util.Log
 import com.safari.traderbot.di.Provider
+import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
+import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.StockTick
+import com.safari.traderbot.model.market.MarketDetailParam
 import kotlinx.coroutines.flow.*
-import java.util.*
 
 class MarketDefaultDataSource: MarketDataSource {
 
@@ -17,6 +19,10 @@ class MarketDefaultDataSource: MarketDataSource {
 
     override fun getMarketInfo(): Flow<StockTick> {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun getSingleMarketInfo(marketName: String): GenericResponse<MarketDetail?> {
+        return coinexService.getMarketDetail(MarketDetailParam(marketName))
     }
 
     override suspend fun getMarketList() {

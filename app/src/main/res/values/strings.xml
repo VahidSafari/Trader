@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">TraderBot</string>
     <string name="price">price</string>
-    <string name="amount">amount</string>
+    <string name="amount">1.0001</string>
     <string name="submit_order">submit order</string>
     <string name="close">CLOSE</string>
+    <string name="amount_to_order">amount to order</string>
 </resources>

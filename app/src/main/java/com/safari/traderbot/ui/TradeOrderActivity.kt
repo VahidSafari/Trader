@@ -9,12 +9,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.reflect.TypeToken
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
 import com.safari.traderbot.di.Provider
-import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.model.marketorder.MarkerOrderParam
+import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,6 +26,7 @@ class TradeOrderActivity : AppCompatActivity() {
     private lateinit var marketAdapter: MarketAdapter
 
     private val marketViewModel: MarketViewModel by viewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,30 +58,44 @@ class TradeOrderActivity : AppCompatActivity() {
         )
 
         binding.submitOrderButton.setOnClickListener {
+
+            setAmountError(null)
+
             lifecycleScope.launch(Dispatchers.IO) {
 
                 try {
                     withContext(Dispatchers.Main) {
                         binding.pgLoading.visibility = View.VISIBLE
                     }
-                    val putMarkerOrderResponse = Provider.getStockApi().putMarketOrder(
-                        marketAdapter.selectedMarket.third,
-                        StockApi.ORDER_TYPE.getTypeByString(binding.typeDropDown.selectedItem.toString()),
-                        binding.amount.text.toString()
+
+                    val submitResponse = Provider.getCoinexService().submitMarketOrder(
+                        MarkerOrderParam(
+                            marketAdapter.selectedMarket.third,
+                            binding.typeDropDown.selectedItem.toString(),
+                            binding.amount.text.toString(),
+                            System.currentTimeMillis().toString()
+                        )
                     )
 
-                    val data: GenericResponse<String> = Provider.getGson().fromJson(
-                        putMarkerOrderResponse,
-                        object : TypeToken<GenericResponse<MarketOrderResponse?>?>() {}.type
-                    )
+                    when (submitResponse.code) {
+                        CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
+                            val marketDetail =
+                                marketViewModel.getMarketDetail(marketAdapter.selectedMarket.third)
+                            setAmountError("min amount is ${marketDetail.data?.minAmount}")
+                        }
+                        CoinexStatusCode.SUCCEEDED -> {
+
+                        }
+                    }
+
+                    Log.d("ommaree", submitResponse.message)
+                    Log.d("ommaree", submitResponse.data.toString())
 
                     withContext(Dispatchers.Main) {
                         binding.pgLoading.visibility = View.GONE
-                        binding.tvResult.visibility = View.VISIBLE
-                        binding.tvResult.text = data.message
                         Snackbar.make(
                             binding.root,
-                            data.message,
+                            submitResponse.message,
                             Snackbar.LENGTH_LONG
                         ).apply {
                             setAction(R.string.close) { dismiss() }
@@ -89,7 +103,7 @@ class TradeOrderActivity : AppCompatActivity() {
                         }
                     }
 
-                    Log.d("putmarkerorder", putMarkerOrderResponse)
+                    Log.d("putmarkerorder", submitResponse.data.toString())
 
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -99,7 +113,7 @@ class TradeOrderActivity : AppCompatActivity() {
             }
         }
 
-        binding.svMarket.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+        binding.svMarket.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
@@ -120,6 +134,10 @@ class TradeOrderActivity : AppCompatActivity() {
             return@setOnCloseListener false
         }
 
+    }
+
+    fun setAmountError(errorMessage: String?) {
+        binding.amount.error = errorMessage
     }
 
 }

@@ -5,7 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.data.MarketDefaultDataSource
+import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
+import com.safari.traderbot.model.market.MarketDetail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -32,6 +34,10 @@ class MarketViewModel : ViewModel() {
 
     fun getLastFetchedAllMarkets() {
         searchResult.value = marketDataSource.markets
+    }
+
+    suspend fun getMarketDetail(marketName: String): GenericResponse<MarketDetail?> {
+        return marketDataSource.getSingleMarketInfo(marketName)
     }
 
 }

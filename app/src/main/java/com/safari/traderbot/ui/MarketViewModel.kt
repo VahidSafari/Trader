@@ -14,10 +14,16 @@ import kotlinx.coroutines.launch
 
 class MarketViewModel : ViewModel() {
 
+    companion object {
+        const val MIN_AMOUNT_UNINITIALIZED = -1.1
+    }
+
     private val marketDataSource = MarketDefaultDataSource()
 
     val markets = MutableLiveData<List<Market>>()
     val searchResult = MutableLiveData<List<Market>>()
+
+    var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 
     fun getMarkets() {
         Log.d("flowtest", "get market in view model called!")
@@ -38,6 +44,10 @@ class MarketViewModel : ViewModel() {
 
     suspend fun getMarketDetail(marketName: String): GenericResponse<MarketDetail?> {
         return marketDataSource.getSingleMarketInfo(marketName)
+    }
+
+    fun resetMinAmount() {
+        minAmount.value = MIN_AMOUNT_UNINITIALIZED
     }
 
 }

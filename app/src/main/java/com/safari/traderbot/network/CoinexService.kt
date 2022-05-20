@@ -6,7 +6,6 @@ import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.balanceinfo.Data
-import com.safari.traderbot.model.market.MarketDetailParam
 import com.safari.traderbot.model.marketorder.MarkerOrderParam
 import retrofit2.http.*
 
@@ -18,7 +17,7 @@ interface CoinexService {
 
     @GET("market/detail")
     suspend fun getMarketDetail(
-        @Body marketDetailParam: MarketDetailParam
+        @Query("market") marketName: String
     ): GenericResponse<MarketDetail?>
 
 

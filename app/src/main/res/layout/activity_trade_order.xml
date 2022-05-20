@@ -48,6 +48,7 @@
             android:spinnerMode="dropdown" />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_amount"
             android:layout_width="wrap_content"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_height="wrap_content">

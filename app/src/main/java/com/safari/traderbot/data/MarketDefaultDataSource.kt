@@ -4,12 +4,13 @@ import android.util.Log
 import com.safari.traderbot.di.Provider
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
-import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.StockTick
-import com.safari.traderbot.model.market.MarketDetailParam
-import kotlinx.coroutines.flow.*
+import com.safari.traderbot.model.market.MarketDetail
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 
-class MarketDefaultDataSource: MarketDataSource {
+class MarketDefaultDataSource : MarketDataSource {
 
     private val coinexService = Provider.getCoinexService()
 
@@ -22,12 +23,13 @@ class MarketDefaultDataSource: MarketDataSource {
     }
 
     override suspend fun getSingleMarketInfo(marketName: String): GenericResponse<MarketDetail?> {
-        return coinexService.getMarketDetail(MarketDetailParam(marketName))
+        return coinexService.getMarketDetail(marketName)
     }
 
     override suspend fun getMarketList() {
         Log.d("flowtest", "market list received!")
-        markets = coinexService.getMarketList().data!!.mapIndexed { index, str -> Market(index, str) }
+        markets =
+            coinexService.getMarketList().data!!.mapIndexed { index, str -> Market(index, str) }
         marketFlow = flowOf(markets)
     }
 

@@ -10,7 +10,9 @@ import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ItemMarketBinding
 import com.safari.traderbot.model.Market
 
-class MarketAdapter: ListAdapter<Market, MarketAdapter.MarketViewHolder>(
+class MarketAdapter(
+    val marketViewModel: MarketViewModel
+): ListAdapter<Market, MarketAdapter.MarketViewHolder>(
     object : DiffUtil.ItemCallback<Market>() {
         override fun areItemsTheSame(p0: Market, p1: Market): Boolean {
             return p0.id == p1.id
@@ -42,9 +44,15 @@ class MarketAdapter: ListAdapter<Market, MarketAdapter.MarketViewHolder>(
 
         fun setClickListeners() {
             this.itemView.setOnClickListener {
-                if (::selectedMarket.isInitialized) { notifyDataSetChanged() }
+                val clickedMarketName = binding.marketName.text.toString()
+                if (::selectedMarket.isInitialized) {
+                    if (selectedMarket.third != clickedMarketName) {
+                        marketViewModel.resetMinAmount()
+                    }
+                    notifyDataSetChanged()
+                }
                 setItemBackgroundColor(R.color.green)
-                selectedMarket = Triple(market.id, this.layoutPosition, binding.marketName.text.toString())
+                selectedMarket = Triple(market.id, this.layoutPosition, clickedMarketName)
             }
         }
 

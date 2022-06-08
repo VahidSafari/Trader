@@ -9,14 +9,16 @@ import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
 import com.safari.traderbot.di.Provider
-import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.marketorder.MarkerOrderParam
-import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.model.ORDER_TYPE_BUY
+import com.safari.traderbot.model.ORDER_TYPE_SELL
+import com.safari.traderbot.model.marketorder.MarketOrderParam
+import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +71,7 @@ class TradeOrderActivity : AppCompatActivity() {
         )
 
         binding.submitOrderButton.setOnClickListener {
+            binding.submitOrderButton.isEnabled = false
 
             Log.d("submitClick", "clicked!")
 
@@ -76,24 +79,93 @@ class TradeOrderActivity : AppCompatActivity() {
 
             lifecycleScope.launch(Dispatchers.Main) {
 
-                try {
-                    binding.pgLoading.visibility = View.VISIBLE
+                binding.pgLoading.visibility = View.VISIBLE
 
-                    val submitResponse = withContext(Dispatchers.IO) {
-                        return@withContext Provider.getCoinexService().submitMarketOrder(
-                            MarkerOrderParam(
-                                marketAdapter.selectedMarket.third,
-                                binding.typeDropDown.selectedItem.toString(),
-                                binding.amount.text.toString(),
-                                System.currentTimeMillis().toString()
-                            )
+                /*val singleMarketStatistics = withContext(Dispatchers.IO) {
+                    return@withContext Provider.getCoinexService().getSingleMarketStatistics(
+                        marketAdapter.selectedMarket.name
+                    )
+                }
+
+                Log.d("this is lit", "onCreate: ")
+
+                val orderType: String = binding.typeDropDown.selectedItem.toString().uppercase()
+                val selectedMarketOrderTickerValue = when (orderType) {
+                    ORDER_TYPE_BUY -> {
+                        singleMarketStatistics.data.ticker.buy!!.toDouble()
+                    }
+                    ORDER_TYPE_SELL -> {
+                        singleMarketStatistics.data.ticker.sell!!.toDouble()
+                    }
+                    else -> { 0.0 }
+                }
+                val selectedMarketOrderAmount =
+                    binding.amount.text.toString().toDouble() * selectedMarketOrderTickerValue
+
+                val submitResponse = withContext(Dispatchers.IO) {
+                    return@withContext Provider.getCoinexService().submitMarketOrder(
+                        MarketOrderParam(
+                            marketAdapter.selectedMarket.name,
+                            binding.typeDropDown.selectedItem.toString(),
+                            selectedMarketOrderAmount.toString(),
+                            System.currentTimeMillis().toString()
                         )
+                    )
+                }
+
+                when (submitResponse.code) {
+                    CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
+                        val marketDetail = withContext(Dispatchers.IO) {
+                            return@withContext marketViewModel.getMarketDetail(marketAdapter.selectedMarket.name)
+                        }
+                        marketViewModel.minAmount.value =
+                            marketDetail.data?.minAmount?.toDouble()
+                                ?: MarketViewModel.MIN_AMOUNT_UNINITIALIZED
+
+                        updateAmountError()
+                    }
+                    else -> {
+                        Log.d("ommaree", submitResponse.message)
+                        Log.d("ommaree", submitResponse.data.toString())
+
+                        Snackbar.make(
+                            binding.root,
+                            submitResponse.message,
+                            Snackbar.LENGTH_LONG
+                        ).apply {
+                            setAction(R.string.close) { dismiss() }
+                            show()
+                        }
                     }
 
+                }*/
+
+                marketViewModel.submitMarketOrder(
+                    MarketOrderParamView(
+                        marketName = marketAdapter.selectedMarket.name,
+                        orderType = binding.typeDropDown.selectedItem.toString(),
+                        selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
+                        tonce = System.currentTimeMillis()
+                    )
+                )
+
+            }
+        }
+
+        setSearchListeners()
+        setAmountListener()
+
+        marketViewModel.marketOrderResult.observe(
+            this@TradeOrderActivity,
+            { submitResponse ->
+
+                lifecycleScope.launch(Dispatchers.Main) {
                     when (submitResponse.code) {
                         CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
                             val marketDetail = withContext(Dispatchers.IO) {
-                                return@withContext marketViewModel.getMarketDetail(marketAdapter.selectedMarket.third)
+                                return@withContext marketViewModel.getMarketDetail(
+                                    marketAdapter.selectedMarket.name
+                                )
                             }
                             marketViewModel.minAmount.value =
                                 marketDetail.data?.minAmount?.toDouble()
@@ -119,17 +191,12 @@ class TradeOrderActivity : AppCompatActivity() {
 
                     Log.d("putmarkerorder", submitResponse.data.toString())
 
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                } finally {
                     binding.pgLoading.visibility = View.GONE
+                    binding.submitOrderButton.isEnabled = true
+
                 }
 
-            }
-        }
-
-        setSearchListeners()
-        setAmountListener()
+            })
 
     }
 

@@ -25,7 +25,7 @@ class MarketAdapter(
     }
 ) {
 
-    lateinit var selectedMarket: Triple<Int,Int, String>
+    lateinit var selectedMarket: SelectedMarketModel
 
     inner class MarketViewHolder(private val binding: ItemMarketBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -35,7 +35,7 @@ class MarketAdapter(
         fun bind(market: Market) {
             this.market = market
             binding.marketName.text = market.name
-            if (::selectedMarket.isInitialized && this.market.id == selectedMarket.first) {
+            if (::selectedMarket.isInitialized && this.market.id == selectedMarket.id) {
                 setItemBackgroundColor(R.color.green)
             } else {
                 setItemBackgroundColor(R.color.grey)
@@ -46,13 +46,13 @@ class MarketAdapter(
             this.itemView.setOnClickListener {
                 val clickedMarketName = binding.marketName.text.toString()
                 if (::selectedMarket.isInitialized) {
-                    if (selectedMarket.third != clickedMarketName) {
+                    if (selectedMarket.name != clickedMarketName) {
                         marketViewModel.resetMinAmount()
                     }
                     notifyDataSetChanged()
                 }
                 setItemBackgroundColor(R.color.green)
-                selectedMarket = Triple(market.id, this.layoutPosition, clickedMarketName)
+                selectedMarket = SelectedMarketModel(market.id, this.layoutPosition, clickedMarketName)
             }
         }
 
@@ -76,3 +76,9 @@ class MarketAdapter(
     }
 
 }
+
+data class SelectedMarketModel(
+    val id: Int,
+    val position: Int,
+    val name: String
+)

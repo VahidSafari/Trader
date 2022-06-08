@@ -4,6 +4,8 @@ import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
 import com.safari.traderbot.model.StockTick
 import com.safari.traderbot.model.market.MarketDetail
+import com.safari.traderbot.model.marketorder.MarketOrderParamView
+import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import kotlinx.coroutines.flow.flow
 
 class MarketMockDataSourceImpl : MarketDataSource {
@@ -33,6 +35,10 @@ class MarketMockDataSourceImpl : MarketDataSource {
     }
 
     override fun searchInMarkets(phrase: String): List<Market> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse> {
         TODO("Not yet implemented")
     }
 

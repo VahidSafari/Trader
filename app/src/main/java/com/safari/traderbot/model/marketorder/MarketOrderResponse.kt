@@ -3,8 +3,8 @@ package com.safari.traderbot.model.marketorder
 import com.google.gson.annotations.SerializedName
 
 data class MarketOrderResponse(
-    @SerializedName("id") val id: Int,
-    @SerializedName("create_time") val createTime: Int,
+    @SerializedName("id") val id: Long,
+    @SerializedName("create_time") val createTime: Long,
     @SerializedName("finished_time") val finishedTime: String,
     @SerializedName("amount") val amount: Double,
     @SerializedName("price") val price: Double,
@@ -25,5 +25,5 @@ data class MarketOrderResponse(
     @SerializedName("type") val type: String,
     @SerializedName("status") val status: String,
     @SerializedName("client_id ") val clientId: String,
-    @SerializedName("source_id") val sourceId: Int
+    @SerializedName("source_id") val sourceId: Long
 )

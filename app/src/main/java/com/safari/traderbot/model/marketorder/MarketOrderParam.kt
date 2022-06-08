@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 import com.safari.traderbot.di.Provider
 import com.safari.traderbot.di.Provider.Companion.ACCESS_ID_HEADER_KEY
 
-data class MarkerOrderParam(
+data class MarketOrderParam(
     val market: String,
     val type: String,
     val amount: String,

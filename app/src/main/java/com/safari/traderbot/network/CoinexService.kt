@@ -6,7 +6,8 @@ import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.balanceinfo.Data
-import com.safari.traderbot.model.marketorder.MarkerOrderParam
+import com.safari.traderbot.model.marketorder.MarketOrderParam
+import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import retrofit2.http.*
 
 interface CoinexService {
@@ -34,7 +35,7 @@ interface CoinexService {
 
     @POST("order/market")
     suspend fun submitMarketOrder(
-        @Body body: MarkerOrderParam,
+        @Body body: MarketOrderParam,
         @Header("authorization") authorization: String =
             com.safari.traderbot.utils.generateSignatureByParamMap(
                 Pair("market", body.market),
@@ -44,5 +45,10 @@ interface CoinexService {
                 Pair(ACCESS_ID_HEADER_KEY, ACCESS_ID_VALUE)
             )
     ): GenericResponse<MarketOrderResponse>
+
+    @GET("market/ticker")
+    suspend fun getSingleMarketStatistics(
+        @Query("market") marketName: String
+    ): GenericResponse<SingleMarketStatisticsResponse>
 
 }

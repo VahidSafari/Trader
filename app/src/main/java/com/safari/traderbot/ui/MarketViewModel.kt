@@ -8,6 +8,8 @@ import com.safari.traderbot.data.MarketDefaultDataSource
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
 import com.safari.traderbot.model.market.MarketDetail
+import com.safari.traderbot.model.marketorder.MarketOrderParamView
+import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -22,6 +24,7 @@ class MarketViewModel : ViewModel() {
 
     val markets = MutableLiveData<List<Market>>()
     val searchResult = MutableLiveData<List<Market>>()
+    val marketOrderResult = MutableLiveData<GenericResponse<MarketOrderResponse>>()
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 
@@ -48,6 +51,12 @@ class MarketViewModel : ViewModel() {
 
     fun resetMinAmount() {
         minAmount.value = MIN_AMOUNT_UNINITIALIZED
+    }
+
+    fun submitMarketOrder(marketOrderParamView: MarketOrderParamView) {
+        viewModelScope.launch(Dispatchers.IO) {
+            marketOrderResult.postValue(marketDataSource.putMarketOrder(marketOrderParamView))
+        }
     }
 
 }

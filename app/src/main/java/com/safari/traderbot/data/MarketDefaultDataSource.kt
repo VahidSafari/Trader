@@ -2,10 +2,10 @@ package com.safari.traderbot.data
 
 import android.util.Log
 import com.safari.traderbot.di.Provider
-import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.Market
-import com.safari.traderbot.model.StockTick
+import com.safari.traderbot.model.*
 import com.safari.traderbot.model.market.MarketDetail
+import com.safari.traderbot.model.marketorder.MarketOrderParamView
+import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -37,6 +37,12 @@ class MarketDefaultDataSource : MarketDataSource {
         Log.d("searchlist", markets.toString())
         Log.d("searchlist", markets.filter { it.name.lowercase().contains(phrase) }.toString())
         return markets.filter { it.name.lowercase().contains(phrase) }
+    }
+
+    override suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse> {
+        val singleMarketStatistics = coinexService.getSingleMarketStatistics(marketOrderParamView.marketName)
+        val marketOrderParam = marketOrderParamView.toMarketOrderParam(singleMarketStatistics.data)
+        return coinexService.submitMarketOrder(marketOrderParam)
     }
 
 }

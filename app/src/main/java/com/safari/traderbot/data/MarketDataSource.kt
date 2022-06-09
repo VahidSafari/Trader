@@ -10,7 +10,7 @@ import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import kotlinx.coroutines.flow.Flow
 
 interface MarketDataSource {
-    fun getMarketInfo(): Flow<StockTick>
+    fun getMarketInfo(marketName: String): Flow<StockTick>
     suspend fun getSingleMarketInfo(marketName: String): GenericResponse<MarketDetail?>
     suspend fun getMarketList()
     fun searchInMarkets(phrase: String): List<Market>

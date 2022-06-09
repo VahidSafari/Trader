@@ -18,7 +18,7 @@ class MarketDefaultDataSource : MarketDataSource {
 
     var markets: List<Market> = emptyList()
 
-    override fun getMarketInfo(): Flow<StockTick> {
+    override fun getMarketInfo(marketName: String): Flow<StockTick> {
         TODO("Not yet implemented")
     }
 

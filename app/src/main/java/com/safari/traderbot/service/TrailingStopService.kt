@@ -7,23 +7,37 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.*
 import com.safari.traderbot.R
 import com.safari.traderbot.data.MarketDataSource
+import com.safari.traderbot.data.MarketDefaultDataSource
 import com.safari.traderbot.data.MarketMockDataSourceImpl
+import com.safari.traderbot.model.GenericResponse
+import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.ui.MainActivity
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.util.concurrent.TimeUnit
+
 
 class TrailingStopService : Service() {
 
     companion object {
         private const val STOP_PERCENT = 0.8f
         private const val NOTIFICATION_ID = 1
+        val timeFrameInMilliseconds = 4000L
     }
+
+    data class TimeFrame(
+        val time: Long,
+        val timeUnit: TimeUnit
+    )
 
     private var maximumSeenPrice: Double = 0.0
 
     private val marketDataSource: MarketDataSource = MarketMockDataSourceImpl()
+
+    //TODO: make market dynamic
+    private val currentMarketName: String = "DOGEUSDT"
 
     override fun onBind(intent: Intent): IBinder? {
         return null
@@ -37,7 +51,7 @@ class TrailingStopService : Service() {
         super.onCreate()
         showForegroundNotification("Trader App Is Running")
         GlobalScope.launch {
-            marketDataSource.getMarketInfo().collect { newTick ->
+            marketDataSource.getMarketInfo(currentMarketName).collect { newTick ->
                 Log.d("trailingStopStrategy", "$newTick")
                 when {
                     newTick.closePrice > maximumSeenPrice -> {
@@ -64,8 +78,34 @@ class TrailingStopService : Service() {
             }
         }
 
-    }
+        getMarketInfoInAnInterval(currentMarketName)
+        marketInfoLiveData.observeForever { newTick ->
+            Log.d("trailingStopStrategy", "$newTick")
+            when {
+                newTick.closePrice > maximumSeenPrice -> {
+                    maximumSeenPrice = newTick.closePrice
+                    Log.d(
+                        "trailingStopStrategy",
+                        "going up -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
+                    )
+                }
+                newTick.closePrice < maximumSeenPrice * STOP_PERCENT -> {
+                    Log.d(
+                        "trailingStopStrategy",
+                        "stop exceeded -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
+                    )
+//                        TODO("PUT MARKER ORDER")
+                }
+                else -> {
+                    Log.d(
+                        "trailingStopStrategy",
+                        "going down -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
+                    )
+                }
+            }
+        }
 
+    }
 
     private fun showForegroundNotification(contentText: String) {
         // Create intent that will bring our app to the front, as if it was tapped in the app
@@ -95,7 +135,7 @@ class TrailingStopService : Service() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel(channelId: String, channelName: String): String? {
+    private fun createNotificationChannel(channelId: String, channelName: String): String {
         val chan = NotificationChannel(
             channelId,
             channelName, NotificationManager.IMPORTANCE_NONE
@@ -106,5 +146,20 @@ class TrailingStopService : Service() {
         manager.createNotificationChannel(chan)
         return channelId
     }
+
+
+    private val marketRealDataSource: MarketDataSource = MarketDefaultDataSource()
+
+    val marketInfoLiveData: MutableLiveData<GenericResponse<MarketDetail?>> = MutableLiveData()
+
+    fun getMarketInfoInAnInterval(marketName: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            while (isActive) {
+                marketInfoLiveData.postValue(marketRealDataSource.getSingleMarketInfo(marketName))
+                delay(timeFrameInMilliseconds)
+            }
+        }
+    }
+
 
 }

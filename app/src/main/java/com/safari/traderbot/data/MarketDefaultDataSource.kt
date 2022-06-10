@@ -6,6 +6,7 @@ import com.safari.traderbot.model.*
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -26,6 +27,10 @@ class MarketDefaultDataSource : MarketDataSource {
         return coinexService.getMarketDetail(marketName)
     }
 
+    override suspend fun getSingleMarketStatistics(marketName: String): GenericResponse<SingleMarketStatisticsResponse> {
+        return coinexService.getSingleMarketStatistics(marketName)
+    }
+
     override suspend fun getMarketList() {
         Log.d("flowtest", "market list received!")
         markets =
@@ -40,7 +45,7 @@ class MarketDefaultDataSource : MarketDataSource {
     }
 
     override suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse> {
-        val singleMarketStatistics = coinexService.getSingleMarketStatistics(marketOrderParamView.marketName)
+        val singleMarketStatistics = getSingleMarketStatistics(marketOrderParamView.marketName)
         val marketOrderParam = marketOrderParamView.toMarketOrderParam(singleMarketStatistics.data)
         return coinexService.submitMarketOrder(marketOrderParam)
     }

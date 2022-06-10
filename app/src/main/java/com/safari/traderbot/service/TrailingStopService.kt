@@ -9,35 +9,42 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.safari.traderbot.R
+import com.safari.traderbot.data.AccountDataSource
 import com.safari.traderbot.data.MarketDataSource
 import com.safari.traderbot.data.MarketDefaultDataSource
-import com.safari.traderbot.data.MarketMockDataSourceImpl
 import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.market.MarketDetail
+import com.safari.traderbot.model.ORDER_TYPE_SELL
+import com.safari.traderbot.model.balanceinfo.BalanceInfo
+import com.safari.traderbot.model.balanceinfo.MarketBalanceInfo
+import com.safari.traderbot.model.marketorder.MarketOrderParamView
+import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import com.safari.traderbot.ui.MainActivity
+import com.safari.traderbot.utils.readInstanceProperty
 import kotlinx.coroutines.*
-import java.util.concurrent.TimeUnit
 
 
 class TrailingStopService : Service() {
 
     companion object {
-        private const val STOP_PERCENT = 0.8f
+        private const val STOP_PERCENT = 0.9999
         private const val NOTIFICATION_ID = 1
-        val timeFrameInMilliseconds = 4000L
+        private const val timeFrameInMilliseconds = 4000L
+        private const val TAG = "trailingStopStrategy"
     }
 
-    data class TimeFrame(
-        val time: Long,
-        val timeUnit: TimeUnit
-    )
+    private var maximumSeenPrice: Double = Double.MIN_VALUE
+    private var lastSeenPrice: Double = Double.MIN_VALUE
 
-    private var maximumSeenPrice: Double = 0.0
+    private val marketDataSource: MarketDataSource = MarketDefaultDataSource()
 
-    private val marketDataSource: MarketDataSource = MarketMockDataSourceImpl()
+    private val accountDataSource = AccountDataSource()
+
+    private lateinit var getMarketInfoJob: Job
 
     //TODO: make market dynamic
-    private val currentMarketName: String = "DOGEUSDT"
+    private val currentMarketName = "DOGE"
+    private val targetMarketName = "USDT"
+    private val currentMarketAndTargetMarketName: String = currentMarketName + targetMarketName
 
     override fun onBind(intent: Intent): IBinder? {
         return null
@@ -49,60 +56,104 @@ class TrailingStopService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
         showForegroundNotification("Trader App Is Running")
-        GlobalScope.launch {
-            marketDataSource.getMarketInfo(currentMarketName).collect { newTick ->
-                Log.d("trailingStopStrategy", "$newTick")
+
+        getMarketInfoInAnInterval()
+        marketInfoLiveData.observeForever { newTick ->
+
+            if (newTick.isSuccessful()) {
+                val marketStatistics = newTick.data.ticker
+                val  buyValue = marketStatistics.buy?.toDouble() ?: Double.MIN_VALUE
+
+                Log.d(
+                    TAG,
+                    "${
+                        when {
+                            buyValue < lastSeenPrice -> {
+                                "going down "
+                            }
+
+                            buyValue > lastSeenPrice -> {
+                                "going up "
+                            }
+
+                            else -> {
+                                "going stable "
+                            }
+                        }
+                    } -> new buy price: $buyValue, last seen price: $lastSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
+                )
+
+                Log.d(TAG, "new ticker: $newTick")
                 when {
-                    newTick.closePrice > maximumSeenPrice -> {
-                        maximumSeenPrice = newTick.closePrice
+
+                    buyValue > maximumSeenPrice -> {
+                        maximumSeenPrice = buyValue
                         Log.d(
-                            "trailingStopStrategy",
-                            "going up -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
+                            TAG,
+                            "going upper than max -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
                         )
                     }
-                    newTick.closePrice < maximumSeenPrice * STOP_PERCENT -> {
+
+                    buyValue < maximumSeenPrice * STOP_PERCENT -> {
                         Log.d(
-                            "trailingStopStrategy",
-                            "stop exceeded -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
+                            TAG,
+                            "stop exceeded -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
                         )
-//                        TODO("PUT MARKER ORDER")
+                        GlobalScope.launch(Dispatchers.IO) {
+
+                            val balanceResponse = accountDataSource.getBalanceInfo().data
+
+                            if (balanceResponse != null) {
+
+                                val balanceInfo = readInstanceProperty<MarketBalanceInfo, BalanceInfo>(balanceResponse, currentMarketName)
+
+                                Log.d(TAG, "balance info result: $balanceInfo")
+
+                                val marketOrderResult = marketDataSource.putMarketOrder(
+                                    MarketOrderParamView(
+                                        marketName = currentMarketAndTargetMarketName,
+                                        orderType = ORDER_TYPE_SELL,
+                                        selectedMarketOrderAmount = balanceInfo.available.toDouble(),
+                                        tonce = System.currentTimeMillis()
+                                    )
+                                )
+
+                                if (marketOrderResult.isSuccessful()) {
+                                    getMarketInfoJob.cancel("COMPLETED THE TRAILING STOP LOSS", Throwable())
+                                }
+
+                                Log.d(TAG, "market order result: $marketOrderResult")
+
+                            }
+
+                        }
+//
                     }
+
+                    buyValue == maximumSeenPrice -> {
+                        Log.d(
+                            TAG,
+                            "going stable with max -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice"
+                        )
+                    }
+
                     else -> {
                         Log.d(
-                            "trailingStopStrategy",
-                            "going down -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
+                            TAG,
+                            "going downer than max -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
                         )
                     }
-                }
-            }
-        }
 
-        getMarketInfoInAnInterval(currentMarketName)
-        marketInfoLiveData.observeForever { newTick ->
-            Log.d("trailingStopStrategy", "$newTick")
-            when {
-                newTick.closePrice > maximumSeenPrice -> {
-                    maximumSeenPrice = newTick.closePrice
-                    Log.d(
-                        "trailingStopStrategy",
-                        "going up -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
-                    )
                 }
-                newTick.closePrice < maximumSeenPrice * STOP_PERCENT -> {
-                    Log.d(
-                        "trailingStopStrategy",
-                        "stop exceeded -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
-                    )
-//                        TODO("PUT MARKER ORDER")
-                }
-                else -> {
-                    Log.d(
-                        "trailingStopStrategy",
-                        "going down -> new close price: ${newTick.closePrice}, maximum seen price: $maximumSeenPrice"
-                    )
-                }
+
+                lastSeenPrice = buyValue
+
+                Log.d(TAG, "--------------------------------------------------------------------------------------------------------------------------------")
+
             }
+
         }
 
     }
@@ -147,16 +198,18 @@ class TrailingStopService : Service() {
         return channelId
     }
 
+    private val marketInfoLiveData: MutableLiveData<GenericResponse<SingleMarketStatisticsResponse>> = MutableLiveData()
 
-    private val marketRealDataSource: MarketDataSource = MarketDefaultDataSource()
-
-    val marketInfoLiveData: MutableLiveData<GenericResponse<MarketDetail?>> = MutableLiveData()
-
-    fun getMarketInfoInAnInterval(marketName: String) {
-        GlobalScope.launch(Dispatchers.IO) {
+    private fun getMarketInfoInAnInterval() {
+        getMarketInfoJob = GlobalScope.launch(Dispatchers.IO) {
             while (isActive) {
-                marketInfoLiveData.postValue(marketRealDataSource.getSingleMarketInfo(marketName))
-                delay(timeFrameInMilliseconds)
+                try {
+                    marketInfoLiveData.postValue(marketDataSource.getSingleMarketStatistics(currentMarketAndTargetMarketName))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    delay(timeFrameInMilliseconds)
+                }
             }
         }
     }

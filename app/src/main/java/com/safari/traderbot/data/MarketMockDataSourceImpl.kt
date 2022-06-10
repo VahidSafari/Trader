@@ -6,11 +6,12 @@ import com.safari.traderbot.model.StockTick
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import kotlinx.coroutines.flow.flow
 
 class MarketMockDataSourceImpl : MarketDataSource {
 
-    override fun getMarketInfo() = flow {
+    override fun getMarketInfo(marketName: String) = flow {
         emit(StockTick(2.2, 3.3, 1.6, 4.5))
         kotlinx.coroutines.delay(1000)
 
@@ -27,6 +28,10 @@ class MarketMockDataSourceImpl : MarketDataSource {
     }
 
     override suspend fun getSingleMarketInfo(marketName: String): GenericResponse<MarketDetail?> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getSingleMarketStatistics(marketName: String): GenericResponse<SingleMarketStatisticsResponse> {
         TODO("Not yet implemented")
     }
 

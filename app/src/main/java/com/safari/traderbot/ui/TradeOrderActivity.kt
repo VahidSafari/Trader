@@ -9,22 +9,16 @@ import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
-import com.safari.traderbot.di.Provider
-import com.safari.traderbot.model.ORDER_TYPE_BUY
-import com.safari.traderbot.model.ORDER_TYPE_SELL
-import com.safari.traderbot.model.marketorder.MarketOrderParam
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.NumberFormatException
 
 class TradeOrderActivity : AppCompatActivity() {
 

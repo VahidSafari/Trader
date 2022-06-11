@@ -45,8 +45,12 @@ class MarketDefaultDataSource : MarketDataSource {
     }
 
     override suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse> {
-        val singleMarketStatistics = getSingleMarketStatistics(marketOrderParamView.marketName)
-        val marketOrderParam = marketOrderParamView.toMarketOrderParam(singleMarketStatistics.data)
+        val marketOrderParam = if (marketOrderParamView.orderType == ORDER_TYPE_BUY) {
+            val singleMarketStatistics = getSingleMarketStatistics(marketOrderParamView.marketName)
+            marketOrderParamView.toMarketOrderParamForBuyOrder(singleMarketStatistics.data)
+        } else {
+            marketOrderParamView.toMarketOrderParamForSellOrder()
+        }
         return coinexService.submitMarketOrder(marketOrderParam)
     }
 

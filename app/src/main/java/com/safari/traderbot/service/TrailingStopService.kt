@@ -21,6 +21,10 @@ import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsRespons
 import com.safari.traderbot.ui.MainActivity
 import com.safari.traderbot.utils.readInstanceProperty
 import kotlinx.coroutines.*
+import android.os.Bundle
+
+
+
 
 
 class TrailingStopService : Service() {
@@ -30,6 +34,16 @@ class TrailingStopService : Service() {
         private const val NOTIFICATION_ID = 1
         private const val timeFrameInMilliseconds = 4000L
         private const val TAG = "trailingStopStrategy"
+
+        const val MARKET_NAME_PARAM = "MARKET_NAME_PARAM"
+
+        val targetMarkets = listOf(
+            "USDT",
+            "USDC",
+            "BTC",
+            "BCH"
+        )
+
     }
 
     private var maximumSeenPrice: Double = Double.MIN_VALUE
@@ -42,15 +56,19 @@ class TrailingStopService : Service() {
     private lateinit var getMarketInfoJob: Job
 
     //TODO: make market dynamic
-    private val currentMarketName = "DOGE"
-    private val targetMarketName = "USDT"
-    private val currentMarketAndTargetMarketName: String = currentMarketName + targetMarketName
+    private var currentMarketName = "DOGE"
+    private var targetMarketName = "USDT"
+    private var currentMarketAndTargetMarketName: String = currentMarketName + targetMarketName
 
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val extrasMarket = intent?.extras?.get(MARKET_NAME_PARAM).toString()
+        currentMarketAndTargetMarketName = targetMarkets.first { extrasMarket.endsWith(it) }
+        targetMarketName = currentMarketAndTargetMarketName.takeLast(extrasMarket.length)
+        currentMarketName = currentMarketAndTargetMarketName.dropLast(extrasMarket.length)
         return START_STICKY
     }
 

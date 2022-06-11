@@ -69,6 +69,14 @@
             android:layout_height="wrap_content"
             android:text="@string/submit_order" />
 
+        <Button
+            android:id="@+id/submit_trailing_stop_order_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/submit_trailing_stop_loss_order" />
+
+
+
     </LinearLayout>
 
     <ProgressBar

@@ -1,5 +1,6 @@
 package com.safari.traderbot.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -16,6 +17,9 @@ import com.safari.traderbot.databinding.ActivityTradeOrderBinding
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
+import com.safari.traderbot.service.TrailingStopService
+import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_NAME_PARAM
+import com.safari.traderbot.utils.isServiceRunning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,6 +32,12 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private val marketViewModel: MarketViewModel by viewModels()
 
+    private enum class OrderMainType {
+        NORMAL,
+        TSL
+    }
+
+    private lateinit var orderMainType: OrderMainType
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,8 +76,10 @@ class TradeOrderActivity : AppCompatActivity() {
 
         binding.submitOrderButton.setOnClickListener {
             binding.submitOrderButton.isEnabled = false
+            binding.submitTrailingStopOrderButton.isEnabled = false
+            orderMainType = OrderMainType.NORMAL
 
-            Log.d("submitClick", "clicked!")
+            Log.d("submitClick", "submit normal order clicked!")
 
             resetAmountError()
 
@@ -86,6 +98,32 @@ class TradeOrderActivity : AppCompatActivity() {
 
             }
         }
+
+        binding.submitTrailingStopOrderButton.setOnClickListener {
+            binding.submitTrailingStopOrderButton.isEnabled = false
+            binding.submitOrderButton.isEnabled = false
+            orderMainType = OrderMainType.TSL
+
+            Log.d("submitClick", "submit trailing stop loss order clicked!")
+
+            resetAmountError()
+
+            lifecycleScope.launch(Dispatchers.Main) {
+
+                binding.pgLoading.visibility = View.VISIBLE
+
+                marketViewModel.submitMarketOrder(
+                    MarketOrderParamView(
+                        marketName = marketAdapter.selectedMarket.name,
+                        orderType = binding.typeDropDown.selectedItem.toString(),
+                        selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
+                        tonce = System.currentTimeMillis()
+                    )
+                )
+
+            }
+        }
+
 
         setSearchListeners()
         setAmountListener()
@@ -120,6 +158,21 @@ class TradeOrderActivity : AppCompatActivity() {
                                 setAction(R.string.close) { dismiss() }
                                 show()
                             }
+
+                            if (submitResponse.isSuccessful()) {
+                                when(orderMainType) {
+                                    OrderMainType.TSL -> {
+                                        if (!isServiceRunning(this@TradeOrderActivity, TrailingStopService::class.java)) {
+                                            val intent = Intent(applicationContext, TrailingStopService::class.java)
+                                            intent.putExtra(MARKET_NAME_PARAM, marketAdapter.selectedMarket.name)
+                                            startService(intent)
+                                            Log.d("trailingStopStrategy", "service started")
+                                        }
+                                    }
+                                    else -> {}
+                                }
+                            }
+
                         }
 
                     }
@@ -128,7 +181,7 @@ class TradeOrderActivity : AppCompatActivity() {
 
                     binding.pgLoading.visibility = View.GONE
                     binding.submitOrderButton.isEnabled = true
-
+                    binding.submitTrailingStopOrderButton.isEnabled = true
                 }
 
             })

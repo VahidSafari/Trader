@@ -29,10 +29,5 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, TradeOrderActivity::class.java))
         }
 
-        if (!isServiceRunning(this, TrailingStopService::class.java)) {
-            startService(Intent(applicationContext, TrailingStopService::class.java))
-            Log.d("trailingStopStrategy", "service started")
-        }
-
     }
 }

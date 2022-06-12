@@ -65,10 +65,9 @@ class TrailingStopService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val extrasMarket = intent?.extras?.get(MARKET_NAME_PARAM).toString()
-        currentMarketAndTargetMarketName = targetMarkets.first { extrasMarket.endsWith(it) }
-        targetMarketName = currentMarketAndTargetMarketName.takeLast(extrasMarket.length)
-        currentMarketName = currentMarketAndTargetMarketName.dropLast(extrasMarket.length)
+        currentMarketAndTargetMarketName = intent?.extras?.get(MARKET_NAME_PARAM).toString()
+        targetMarketName = targetMarkets.first { currentMarketAndTargetMarketName.endsWith(it) }
+        currentMarketName = currentMarketAndTargetMarketName.dropLast(currentMarketAndTargetMarketName.length)
         return START_STICKY
     }
 
@@ -79,6 +78,8 @@ class TrailingStopService : Service() {
 
         getMarketInfoInAnInterval()
         marketInfoLiveData.observeForever { newTick ->
+
+            Log.d(TAG, "observed: $newTick")
 
             if (newTick.isSuccessful()) {
                 val marketStatistics = newTick.data.ticker
@@ -117,7 +118,7 @@ class TrailingStopService : Service() {
                     buyValue < maximumSeenPrice * STOP_PERCENT -> {
                         Log.d(
                             TAG,
-                            "stop exceeded -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
+                            "stop 3ed -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
                         )
                         GlobalScope.launch(Dispatchers.IO) {
 

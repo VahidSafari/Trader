@@ -1,10 +1,8 @@
 package com.safari.traderbot.di
 
-import com.google.gson.Gson
+import com.safari.traderbot.data.MarketDefaultDataSource
 import com.safari.traderbot.network.CoinexService
-import com.safari.traderbot.rest.StockApi
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -20,9 +18,7 @@ class Provider {
 
         private var coinexService: CoinexService? = null
 
-        private var stockApi: StockApi? = null
-
-        private var gson: Gson? = null
+        private var marketDefaultDataSource: MarketDefaultDataSource? = null
 
         const val BASE_URL = "https://api.coinex.com/v1/"
 
@@ -68,14 +64,12 @@ class Provider {
             return coinexService!!
         }
 
-        fun getStockApi(): StockApi {
-            if (stockApi == null) {
-                stockApi = StockApi(BASE_URL, ACCESS_ID_VALUE, SECRET_KEY_VALUE)
+        fun getMarketDefaultDataSource(): MarketDefaultDataSource {
+            if (marketDefaultDataSource == null) {
+                marketDefaultDataSource = MarketDefaultDataSource()
             }
-            return stockApi!!
+            return marketDefaultDataSource!!
         }
-
-        fun getGson(): Gson = gson ?: Gson().apply { gson = this }
 
     }
 

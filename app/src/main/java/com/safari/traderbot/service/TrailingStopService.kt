@@ -22,9 +22,7 @@ import com.safari.traderbot.ui.MainActivity
 import com.safari.traderbot.utils.readInstanceProperty
 import kotlinx.coroutines.*
 import android.os.Bundle
-
-
-
+import com.safari.traderbot.di.Provider
 
 
 class TrailingStopService : Service() {
@@ -49,7 +47,7 @@ class TrailingStopService : Service() {
     private var maximumSeenPrice: Double = Double.MIN_VALUE
     private var lastSeenPrice: Double = Double.MIN_VALUE
 
-    private val marketDataSource: MarketDataSource = MarketDefaultDataSource()
+    private val marketDataSource: MarketDataSource = Provider.getMarketDefaultDataSource()
 
     private val accountDataSource = AccountDataSource()
 

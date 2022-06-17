@@ -16,6 +16,8 @@ class CoinListActivity : AppCompatActivity() {
 
     private lateinit var coinAdapter: CoinAdapter
 
+    private lateinit var fragmentStateAdapter: MarketListFragmentStateAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCoinListBinding.inflate(layoutInflater)
@@ -27,7 +29,8 @@ class CoinListActivity : AppCompatActivity() {
         lifecycleScope.launchWhenCreated {
             binding.pgLoading.visibility = View.VISIBLE
             val marketList = Provider.getCoinexService().getMarketList()
-            coinAdapter.submitList(marketList.data?.mapIndexed { index, str -> Market(index, str) })
+            //TODO: replace real isFavourite with false
+            coinAdapter.submitList(marketList.data?.mapIndexed { index, str -> Market(index, str, false) })
             binding.pgLoading.visibility = View.GONE
             Log.d("coinList", marketList.toString())
         }

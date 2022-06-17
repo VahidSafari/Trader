@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.data.MarketDefaultDataSource
+import com.safari.traderbot.di.Provider
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
 import com.safari.traderbot.model.market.MarketDetail
@@ -20,7 +21,7 @@ class MarketViewModel : ViewModel() {
         const val MIN_AMOUNT_UNINITIALIZED = -1.1
     }
 
-    private val marketDataSource = MarketDefaultDataSource()
+    private val marketDataSource = Provider.getMarketDefaultDataSource()
 
     val markets = MutableLiveData<List<Market>>()
     val searchResult = MutableLiveData<List<Market>>()
@@ -57,6 +58,10 @@ class MarketViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             marketOrderResult.postValue(marketDataSource.putMarketOrder(marketOrderParamView))
         }
+    }
+
+    fun toggleFavouriteStatus(marketModel: AllMarketsMarketModel) {
+        marketDataSource.updateMarketModel(marketModel.toMarketModel())
     }
 
 }

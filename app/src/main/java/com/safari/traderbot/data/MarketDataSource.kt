@@ -8,6 +8,7 @@ import com.safari.traderbot.model.marketorder.MarketOrderParam
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
+import com.safari.traderbot.ui.AllMarketsMarketModel
 import kotlinx.coroutines.flow.Flow
 
 interface MarketDataSource {
@@ -17,4 +18,5 @@ interface MarketDataSource {
     suspend fun getMarketList()
     fun searchInMarkets(phrase: String): List<Market>
     suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse>
+    fun updateMarketModel(marketModel: Market)
 }

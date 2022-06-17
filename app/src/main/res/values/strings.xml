@@ -6,4 +6,6 @@
     <string name="close">CLOSE</string>
     <string name="amount_to_order">amount to order</string>
     <string name="submit_trailing_stop_loss_order">submit TSL order</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

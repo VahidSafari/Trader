@@ -2,7 +2,10 @@ package com.safari.traderbot.data
 
 import android.util.Log
 import com.safari.traderbot.di.Provider
-import com.safari.traderbot.model.*
+import com.safari.traderbot.model.GenericResponse
+import com.safari.traderbot.model.Market
+import com.safari.traderbot.model.ORDER_TYPE_BUY
+import com.safari.traderbot.model.StockTick
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
@@ -17,7 +20,7 @@ class MarketDefaultDataSource : MarketDataSource {
 
     var marketFlow: Flow<List<Market>> = emptyFlow()
 
-    var markets: List<Market> = emptyList()
+    var markets: ArrayList<Market> = arrayListOf()
 
     override fun getMarketInfo(marketName: String): Flow<StockTick> {
         TODO("Not yet implemented")
@@ -33,8 +36,13 @@ class MarketDefaultDataSource : MarketDataSource {
 
     override suspend fun getMarketList() {
         Log.d("flowtest", "market list received!")
-        markets =
-            coinexService.getMarketList().data!!.mapIndexed { index, str -> Market(index, str) }
+        markets = ArrayList(coinexService.getMarketList().data!!.mapIndexed { index, str ->
+            Market(
+                index,
+                str,
+                findMarketByMarketName(str).isFavourite
+            )
+        })
         marketFlow = flowOf(markets)
     }
 
@@ -52,6 +60,14 @@ class MarketDefaultDataSource : MarketDataSource {
             marketOrderParamView.toMarketOrderParamForSellOrder()
         }
         return coinexService.submitMarketOrder(marketOrderParam)
+    }
+
+    override fun updateMarketModel(market: Market) {
+        markets[markets.indexOfFirst { it.name == market.name }] = market
+    }
+
+    private fun findMarketByMarketName(marketName: String): Market {
+        return markets.first { it.name == marketName }
     }
 
 }

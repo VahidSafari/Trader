@@ -40,7 +40,7 @@ class MarketDefaultDataSource : MarketDataSource {
             Market(
                 index,
                 str,
-                findMarketByMarketName(str).isFavourite
+                findMarketByMarketName(str)?.isFavourite?:false
             )
         })
         marketFlow = flowOf(markets)
@@ -66,8 +66,8 @@ class MarketDefaultDataSource : MarketDataSource {
         markets[markets.indexOfFirst { it.name == market.name }] = market
     }
 
-    private fun findMarketByMarketName(marketName: String): Market {
-        return markets.first { it.name == marketName }
+    private fun findMarketByMarketName(marketName: String): Market? {
+        return markets.firstOrNull { it.name == marketName }
     }
 
 }

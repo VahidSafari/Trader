@@ -15,7 +15,7 @@ class AllMarketsFragment : Fragment() {
 
     private val marketListViewModel: MarketViewModel by viewModels()
 
-    private lateinit var marketAdapter: MarketAdapter
+    private lateinit var marketAdapter: AllMarketsAdapter
 
     private lateinit var binding: FragmentAllMarketsBinding
 
@@ -30,7 +30,7 @@ class AllMarketsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        marketAdapter = MarketAdapter(marketListViewModel)
+        marketAdapter = AllMarketsAdapter(marketListViewModel)
         binding.rvMarkets.adapter = marketAdapter
 
         lifecycleScope.launchWhenCreated {
@@ -38,11 +38,11 @@ class AllMarketsFragment : Fragment() {
         }
 
         marketListViewModel.markets.observe(viewLifecycleOwner) {
-            marketAdapter.submitList(it)
+            marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 
         marketListViewModel.searchResult.observe(viewLifecycleOwner) {
-            marketAdapter.submitList(it)
+            marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 
     }

@@ -1,10 +1,10 @@
 package com.safari.traderbot.ui
 
 import android.util.Log
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.safari.traderbot.data.MarketDefaultDataSource
 import com.safari.traderbot.di.Provider
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.Market
@@ -26,8 +26,16 @@ class MarketViewModel : ViewModel() {
     val markets = MutableLiveData<List<Market>>()
     val searchResult = MutableLiveData<List<Market>>()
     val marketOrderResult = MutableLiveData<GenericResponse<MarketOrderResponse>>()
+    val favouriteLiveData = MediatorLiveData<List<Market>>()
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
+
+    init {
+        favouriteLiveData.addSource(markets) {
+            val onlyFavouriteMarkets = it.filter { market -> market.isFavourite }
+            favouriteLiveData.value = onlyFavouriteMarkets
+        }
+    }
 
     fun getMarkets() {
         Log.d("flowtest", "get market in view model called!")

@@ -8,4 +8,6 @@
     <string name="submit_trailing_stop_loss_order">submit TSL order</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="all_markets">All Markets</string>
+    <string name="favourites">Favourite Markets</string>
 </resources>

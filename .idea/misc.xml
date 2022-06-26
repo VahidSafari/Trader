@@ -5,11 +5,12 @@
       <map>
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/drawable/ic_launcher_background.xml" value="0.24074074074074073" />
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/activity_account_detail.xml" value="0.13020833333333334" />
-        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/activity_coin_list.xml" value="0.1" />
+        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/activity_coin_list.xml" value="0.2" />
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/activity_main.xml" value="0.176" />
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/activity_trade_order.xml" value="0.264" />
-        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/fragment_all_markets.xml" value="0.2" />
-        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/item_all_market_market.xml" value="0.4" />
+        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/fragment_all_markets.xml" value="0.264" />
+        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/fragment_favourite.xml" value="0.264" />
+        <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/item_all_market_market.xml" value="0.264" />
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/item_coin.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/item_market.xml" value="0.1" />
         <entry key="..\:/Users/safar/AndroidStudioProjects/TraderBot/app/src/main/res/layout/market_item.xml" value="0.264" />

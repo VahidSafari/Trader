@@ -47,5 +47,9 @@ class MarketMockDataSourceImpl : MarketDataSource {
         TODO("Not yet implemented")
     }
 
+    override fun updateMarketModel(marketModel: Market) {
+        TODO("Not yet implemented")
+    }
+
 
 }

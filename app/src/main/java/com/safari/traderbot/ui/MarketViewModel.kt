@@ -68,8 +68,10 @@ class MarketViewModel : ViewModel() {
         }
     }
 
-    fun toggleFavouriteStatus(marketModel: AllMarketsMarketModel) {
-        marketDataSource.updateMarketModel(marketModel.toMarketModel())
+    fun toggleFavouriteStatus(allMarketsMarketModel: AllMarketsMarketModel) {
+        marketDataSource.updateMarketModel(
+            allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite).toMarketModel()
+        )
     }
 
 }

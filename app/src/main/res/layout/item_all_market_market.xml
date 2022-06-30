@@ -9,7 +9,7 @@
             type="com.safari.traderbot.ui.AllMarketsMarketModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/cl_item_all_market"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:text="@{itemMarket.marketName}"
+            android:layout_weight="1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -37,5 +38,5 @@
             tools:src="@drawable/icon_empty_star"
             android:src="@{itemMarket.isFavourite? @drawable/icon_star : @drawable/icon_empty_star}" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </layout>

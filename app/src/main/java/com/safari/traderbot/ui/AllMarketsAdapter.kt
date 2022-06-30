@@ -39,13 +39,14 @@ class AllMarketsAdapter(val viewModel: MarketViewModel) :
         fun setOnClickListeners() {
             binding.ivAllMarketFavourite.setOnClickListener {
                 viewModel.toggleFavouriteStatus(marketModel)
+                viewModel.getMarkets()
             }
         }
 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllMarketsViewHolder {
-        return AllMarketsViewHolder(ItemAllMarketMarketBinding.inflate(LayoutInflater.from(parent.context))).apply {
+        return AllMarketsViewHolder(ItemAllMarketMarketBinding.inflate(LayoutInflater.from(parent.context), parent, false)).apply {
             setOnClickListeners()
         }
     }

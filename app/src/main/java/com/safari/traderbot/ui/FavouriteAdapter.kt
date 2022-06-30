@@ -47,7 +47,7 @@ class FavouriteAdapter(private val marketListViewModel: MarketViewModel) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FavouriteViewHolder {
         return FavouriteViewHolder(
-            ItemAllMarketMarketBinding.inflate(LayoutInflater.from(parent.context))
+            ItemAllMarketMarketBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         ).apply { setOnClickListeners() }
     }
 

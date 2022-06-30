@@ -11,6 +11,7 @@ import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 
@@ -18,7 +19,7 @@ class MarketDefaultDataSource : MarketDataSource {
 
     private val coinexService = Provider.getCoinexService()
 
-    var marketFlow: Flow<List<Market>> = emptyFlow()
+    var marketFlow: MutableStateFlow<List<Market>> = MutableStateFlow(emptyList())
 
     var markets: ArrayList<Market> = arrayListOf()
 
@@ -43,7 +44,7 @@ class MarketDefaultDataSource : MarketDataSource {
                 findMarketByMarketName(str)?.isFavourite?:false
             )
         })
-        marketFlow = flowOf(markets)
+        marketFlow.value = markets
     }
 
     override fun searchInMarkets(phrase: String): List<Market> {
@@ -64,6 +65,7 @@ class MarketDefaultDataSource : MarketDataSource {
 
     override fun updateMarketModel(market: Market) {
         markets[markets.indexOfFirst { it.name == market.name }] = market
+        marketFlow.value = markets
     }
 
     private fun findMarketByMarketName(marketName: String): Market? {

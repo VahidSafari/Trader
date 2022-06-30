@@ -3,7 +3,7 @@ package com.safari.traderbot.data
 import android.util.Log
 import com.safari.traderbot.di.Provider
 import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.Market
+import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.ORDER_TYPE_BUY
 import com.safari.traderbot.model.StockTick
 import com.safari.traderbot.model.market.MarketDetail
@@ -12,16 +12,14 @@ import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 
 class MarketDefaultDataSource : MarketDataSource {
 
     private val coinexService = Provider.getCoinexService()
 
-    var marketFlow: MutableStateFlow<List<Market>> = MutableStateFlow(emptyList())
+    var marketFlow: MutableStateFlow<List<MarketEntity>> = MutableStateFlow(emptyList())
 
-    var markets: ArrayList<Market> = arrayListOf()
+    var markets: ArrayList<MarketEntity> = arrayListOf()
 
     override fun getMarketInfo(marketName: String): Flow<StockTick> {
         TODO("Not yet implemented")
@@ -38,7 +36,7 @@ class MarketDefaultDataSource : MarketDataSource {
     override suspend fun getMarketList() {
         Log.d("flowtest", "market list received!")
         markets = ArrayList(coinexService.getMarketList().data!!.mapIndexed { index, str ->
-            Market(
+            MarketEntity(
                 index,
                 str,
                 findMarketByMarketName(str)?.isFavourite?:false
@@ -47,7 +45,7 @@ class MarketDefaultDataSource : MarketDataSource {
         marketFlow.value = markets
     }
 
-    override fun searchInMarkets(phrase: String): List<Market> {
+    override fun searchInMarkets(phrase: String): List<MarketEntity> {
         Log.d("searchlist", markets.toString())
         Log.d("searchlist", markets.filter { it.name.lowercase().contains(phrase) }.toString())
         return markets.filter { it.name.lowercase().contains(phrase) }
@@ -63,12 +61,12 @@ class MarketDefaultDataSource : MarketDataSource {
         return coinexService.submitMarketOrder(marketOrderParam)
     }
 
-    override fun updateMarketModel(market: Market) {
+    override fun updateMarketModel(market: MarketEntity) {
         markets[markets.indexOfFirst { it.name == market.name }] = market
         marketFlow.value = markets
     }
 
-    private fun findMarketByMarketName(marketName: String): Market? {
+    private fun findMarketByMarketName(marketName: String): MarketEntity? {
         return markets.firstOrNull { it.name == marketName }
     }
 

@@ -8,17 +8,17 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ItemMarketBinding
-import com.safari.traderbot.model.Market
+import com.safari.traderbot.entity.MarketEntity
 
 class MarketAdapter(
     val marketViewModel: MarketViewModel
-): ListAdapter<Market, MarketAdapter.MarketViewHolder>(
-    object : DiffUtil.ItemCallback<Market>() {
-        override fun areItemsTheSame(p0: Market, p1: Market): Boolean {
+): ListAdapter<MarketEntity, MarketAdapter.MarketViewHolder>(
+    object : DiffUtil.ItemCallback<MarketEntity>() {
+        override fun areItemsTheSame(p0: MarketEntity, p1: MarketEntity): Boolean {
             return p0.id == p1.id
         }
 
-        override fun areContentsTheSame(p0: Market, p1: Market): Boolean {
+        override fun areContentsTheSame(p0: MarketEntity, p1: MarketEntity): Boolean {
             return p0.name == p1.name
         }
 
@@ -30,9 +30,9 @@ class MarketAdapter(
     inner class MarketViewHolder(private val binding: ItemMarketBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        lateinit var market: Market
+        lateinit var market: MarketEntity
 
-        fun bind(market: Market) {
+        fun bind(market: MarketEntity) {
             this.market = market
             binding.marketName.text = market.name
             if (::selectedMarket.isInitialized && this.market.id == selectedMarket.id) {

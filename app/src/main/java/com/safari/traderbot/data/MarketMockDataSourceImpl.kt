@@ -1,7 +1,7 @@
 package com.safari.traderbot.data
 
 import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.Market
+import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.StockTick
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
@@ -39,7 +39,7 @@ class MarketMockDataSourceImpl : MarketDataSource {
         TODO("Not yet implemented")
     }
 
-    override fun searchInMarkets(phrase: String): List<Market> {
+    override fun searchInMarkets(phrase: String): List<MarketEntity> {
         TODO("Not yet implemented")
     }
 
@@ -47,7 +47,7 @@ class MarketMockDataSourceImpl : MarketDataSource {
         TODO("Not yet implemented")
     }
 
-    override fun updateMarketModel(marketModel: Market) {
+    override fun updateMarketModel(marketModel: MarketEntity) {
         TODO("Not yet implemented")
     }
 

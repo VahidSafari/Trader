@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.di.Provider
 import com.safari.traderbot.model.GenericResponse
-import com.safari.traderbot.model.Market
+import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
@@ -23,10 +23,10 @@ class MarketViewModel : ViewModel() {
 
     private val marketDataSource = Provider.getMarketDefaultDataSource()
 
-    val markets = MutableLiveData<List<Market>>()
-    val searchResult = MutableLiveData<List<Market>>()
+    val markets = MutableLiveData<List<MarketEntity>>()
+    val searchResult = MutableLiveData<List<MarketEntity>>()
     val marketOrderResult = MutableLiveData<GenericResponse<MarketOrderResponse>>()
-    val favouriteLiveData = MediatorLiveData<List<Market>>()
+    val favouriteLiveData = MediatorLiveData<List<MarketEntity>>()
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 

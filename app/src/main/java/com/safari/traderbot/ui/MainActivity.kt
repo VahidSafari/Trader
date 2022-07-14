@@ -7,7 +7,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.safari.traderbot.databinding.ActivityMainBinding
 import com.safari.traderbot.service.TrailingStopService
 import com.safari.traderbot.utils.isServiceRunning
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mainActivityBinding: ActivityMainBinding;

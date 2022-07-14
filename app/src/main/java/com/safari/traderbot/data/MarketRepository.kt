@@ -8,8 +8,11 @@ import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
-interface MarketDataSource {
+interface MarketRepository {
+    var marketFlow: MutableStateFlow<List<MarketEntity>>
+    var markets: ArrayList<MarketEntity>
     fun getMarketInfo(marketName: String): Flow<StockTick>
     suspend fun getSingleMarketInfo(marketName: String): GenericResponse<MarketDetail?>
     suspend fun getSingleMarketStatistics(marketName: String): GenericResponse<SingleMarketStatisticsResponse>

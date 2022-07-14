@@ -10,8 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.safari.traderbot.R
 import com.safari.traderbot.data.AccountDataSource
-import com.safari.traderbot.data.MarketDataSource
-import com.safari.traderbot.data.MarketDefaultDataSource
+import com.safari.traderbot.data.MarketRepository
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.ORDER_TYPE_SELL
 import com.safari.traderbot.model.balanceinfo.BalanceInfo
@@ -21,10 +20,10 @@ import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsRespons
 import com.safari.traderbot.ui.MainActivity
 import com.safari.traderbot.utils.readInstanceProperty
 import kotlinx.coroutines.*
-import android.os.Bundle
-import com.safari.traderbot.di.Provider
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class TrailingStopService : Service() {
 
     companion object {
@@ -47,7 +46,8 @@ class TrailingStopService : Service() {
     private var maximumSeenPrice: Double = Double.MIN_VALUE
     private var lastSeenPrice: Double = Double.MIN_VALUE
 
-    private val marketDataSource: MarketDataSource = Provider.getMarketDefaultDataSource()
+    @Inject
+    lateinit var marketRepository: MarketRepository
 
     private val accountDataSource = AccountDataSource()
 
@@ -128,7 +128,7 @@ class TrailingStopService : Service() {
 
                                 Log.d(TAG, "balance info result: $balanceInfo")
 
-                                val marketOrderResult = marketDataSource.putMarketOrder(
+                                val marketOrderResult = marketRepository.putMarketOrder(
                                     MarketOrderParamView(
                                         marketName = currentMarketAndTargetMarketName,
                                         orderType = ORDER_TYPE_SELL,
@@ -221,7 +221,7 @@ class TrailingStopService : Service() {
         getMarketInfoJob = GlobalScope.launch(Dispatchers.IO) {
             while (isActive) {
                 try {
-                    marketInfoLiveData.postValue(marketDataSource.getSingleMarketStatistics(currentMarketAndTargetMarketName))
+                    marketInfoLiveData.postValue(marketRepository.getSingleMarketStatistics(currentMarketAndTargetMarketName))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {

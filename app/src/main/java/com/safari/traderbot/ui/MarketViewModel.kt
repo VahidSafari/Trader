@@ -5,23 +5,26 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.safari.traderbot.di.Provider
+import com.safari.traderbot.data.MarketRepository
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MarketViewModel : ViewModel() {
+@HiltViewModel
+class MarketViewModel @Inject constructor(
+    private val marketRepository: MarketRepository
+) : ViewModel() {
 
     companion object {
         const val MIN_AMOUNT_UNINITIALIZED = -1.1
     }
-
-    private val marketDataSource = Provider.getMarketDefaultDataSource()
 
     val markets = MutableLiveData<List<MarketEntity>>()
     val searchResult = MutableLiveData<List<MarketEntity>>()
@@ -40,22 +43,22 @@ class MarketViewModel : ViewModel() {
     fun getMarkets() {
         Log.d("flowtest", "get market in view model called!")
         viewModelScope.launch(Dispatchers.IO) {
-            marketDataSource.getMarketList()
-            marketDataSource.marketFlow.collectLatest { markets.postValue(it) }
+            marketRepository.getMarketList()
+            marketRepository.marketFlow.collectLatest { markets.postValue(it) }
         }
     }
 
     fun searchInMarkets(phrase: String) {
-        Log.d("searchlist", marketDataSource.searchInMarkets(phrase).toString())
-        searchResult.value = marketDataSource.searchInMarkets(phrase)
+        Log.d("searchlist", marketRepository.searchInMarkets(phrase).toString())
+        searchResult.value = marketRepository.searchInMarkets(phrase)
     }
 
     fun getLastFetchedAllMarkets() {
-        searchResult.value = marketDataSource.markets
+        searchResult.value = marketRepository.markets
     }
 
     suspend fun getMarketDetail(marketName: String): GenericResponse<MarketDetail?> {
-        return marketDataSource.getSingleMarketInfo(marketName)
+        return marketRepository.getSingleMarketInfo(marketName)
     }
 
     fun resetMinAmount() {
@@ -64,12 +67,12 @@ class MarketViewModel : ViewModel() {
 
     fun submitMarketOrder(marketOrderParamView: MarketOrderParamView) {
         viewModelScope.launch(Dispatchers.IO) {
-            marketOrderResult.postValue(marketDataSource.putMarketOrder(marketOrderParamView))
+            marketOrderResult.postValue(marketRepository.putMarketOrder(marketOrderParamView))
         }
     }
 
     fun toggleFavouriteStatus(allMarketsMarketModel: AllMarketsMarketModel) {
-        marketDataSource.updateMarketModel(
+        marketRepository.updateMarketModel(
             allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite).toMarketModel()
         )
     }

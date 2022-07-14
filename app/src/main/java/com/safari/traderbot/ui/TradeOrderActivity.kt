@@ -20,10 +20,12 @@ import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
 import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_NAME_PARAM
 import com.safari.traderbot.utils.isServiceRunning
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint
 class TradeOrderActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTradeOrderBinding

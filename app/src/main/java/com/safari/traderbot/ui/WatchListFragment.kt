@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.safari.traderbot.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class WatchListFragment : Fragment() {
 
     override fun onCreateView(

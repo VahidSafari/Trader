@@ -10,7 +10,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.safari.traderbot.databinding.FragmentAllMarketsBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AllMarketsFragment : Fragment() {
 
     private val marketListViewModel: MarketViewModel by viewModels()

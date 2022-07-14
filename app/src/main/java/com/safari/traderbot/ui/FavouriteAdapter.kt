@@ -14,7 +14,7 @@ class FavouriteAdapter(private val marketListViewModel: MarketViewModel) :
                 p0: AllMarketsMarketModel,
                 p1: AllMarketsMarketModel
             ): Boolean {
-                return p0.id == p1.id
+                return p0.marketName == p1.marketName
             }
 
             override fun areContentsTheSame(

@@ -1,7 +1,7 @@
 package com.safari.traderbot.data
 
 import android.util.Log
-import com.safari.traderbot.di.Provider
+import com.safari.traderbot.db.MarketDao
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.ORDER_TYPE_BUY
@@ -10,16 +10,19 @@ import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
+import com.safari.traderbot.network.CoinexService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import javax.inject.Inject
 
-class MarketDefaultDataSource : MarketDataSource {
+class MarketRepositoryImpl @Inject constructor(
+    private val coinexService: CoinexService,
+    private val marketDao: MarketDao
+): MarketRepository {
 
-    private val coinexService = Provider.getCoinexService()
+    override var marketFlow: MutableStateFlow<List<MarketEntity>> = MutableStateFlow(emptyList())
 
-    var marketFlow: MutableStateFlow<List<MarketEntity>> = MutableStateFlow(emptyList())
-
-    var markets: ArrayList<MarketEntity> = arrayListOf()
+    override var markets: ArrayList<MarketEntity> = arrayListOf()
 
     override fun getMarketInfo(marketName: String): Flow<StockTick> {
         TODO("Not yet implemented")
@@ -35,9 +38,9 @@ class MarketDefaultDataSource : MarketDataSource {
 
     override suspend fun getMarketList() {
         Log.d("flowtest", "market list received!")
-        markets = ArrayList(coinexService.getMarketList().data!!.mapIndexed { index, str ->
+        val marketList = coinexService.getMarketList().data!!
+        markets = ArrayList(marketList.mapIndexed { index, str ->
             MarketEntity(
-                index,
                 str,
                 findMarketByMarketName(str)?.isFavourite?:false
             )

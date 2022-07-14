@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityCoinListBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CoinListActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCoinListBinding

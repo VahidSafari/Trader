@@ -9,9 +9,8 @@ import com.safari.traderbot.ui.AllMarketsMarketModel
 )
 data class MarketEntity(
     @PrimaryKey
-    val id: Int,
     val name: String,
     val isFavourite: Boolean
     ) {
-    fun toAllMarketsModel() = AllMarketsMarketModel(id, name, isFavourite)
+    fun toAllMarketsModel() = AllMarketsMarketModel(name, isFavourite)
 }

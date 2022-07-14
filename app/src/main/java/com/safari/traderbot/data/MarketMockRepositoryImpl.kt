@@ -7,9 +7,16 @@ import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 
-class MarketMockDataSourceImpl : MarketDataSource {
+class MarketMockRepositoryImpl : MarketRepository {
+    override var marketFlow: MutableStateFlow<List<MarketEntity>>
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var markets: ArrayList<MarketEntity>
+        get() = TODO("Not yet implemented")
+        set(value) {}
 
     override fun getMarketInfo(marketName: String) = flow {
         emit(StockTick(2.2, 3.3, 1.6, 4.5))

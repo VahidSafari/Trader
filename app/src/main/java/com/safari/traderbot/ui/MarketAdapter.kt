@@ -15,7 +15,7 @@ class MarketAdapter(
 ): ListAdapter<MarketEntity, MarketAdapter.MarketViewHolder>(
     object : DiffUtil.ItemCallback<MarketEntity>() {
         override fun areItemsTheSame(p0: MarketEntity, p1: MarketEntity): Boolean {
-            return p0.id == p1.id
+            return p0.name == p1.name
         }
 
         override fun areContentsTheSame(p0: MarketEntity, p1: MarketEntity): Boolean {
@@ -35,7 +35,7 @@ class MarketAdapter(
         fun bind(market: MarketEntity) {
             this.market = market
             binding.marketName.text = market.name
-            if (::selectedMarket.isInitialized && this.market.id == selectedMarket.id) {
+            if (::selectedMarket.isInitialized && this.market.name == selectedMarket.name) {
                 setItemBackgroundColor(R.color.green)
             } else {
                 setItemBackgroundColor(R.color.grey)
@@ -52,7 +52,7 @@ class MarketAdapter(
                     notifyDataSetChanged()
                 }
                 setItemBackgroundColor(R.color.green)
-                selectedMarket = SelectedMarketModel(market.id, this.layoutPosition, clickedMarketName)
+                selectedMarket = SelectedMarketModel(this.layoutPosition, clickedMarketName)
             }
         }
 
@@ -78,7 +78,6 @@ class MarketAdapter(
 }
 
 data class SelectedMarketModel(
-    val id: Int,
     val position: Int,
     val name: String
 )

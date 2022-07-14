@@ -1,7 +1,9 @@
 package com.safari.traderbot.db
 
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.safari.traderbot.MarketApplication
 import com.safari.traderbot.entity.MarketEntity
 
 @Database(
@@ -10,10 +12,11 @@ import com.safari.traderbot.entity.MarketEntity
     exportSchema = false
 )
 abstract class MarketDB : RoomDatabase() {
-    abstract fun getMarketDao(): MarketDao
 
     companion object {
-        private var INSTANCE: RoomDatabase? = null
+        const val DATABASE_NAME = "MARKET_DB"
     }
+
+    abstract fun getMarketDao(): MarketDao
 
 }

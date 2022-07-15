@@ -1,5 +1,6 @@
 package com.safari.traderbot.db
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.safari.traderbot.entity.MarketEntity
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,10 @@ interface MarketDao {
     @Update
     fun update(market: MarketEntity)
 
-    @Query("SELECT * from markets")
-    fun getAll(): Flow<List<MarketEntity>>
+    @Query("SELECT * FROM markets")
+    fun getAll(): LiveData<List<MarketEntity>>
+
+    @Query("SELECT * FROM markets WHERE name LIKE :phrase")
+    fun search(phrase : String): LiveData<List<MarketEntity>>
 
 }

@@ -43,18 +43,18 @@ class MarketViewModel @Inject constructor(
     fun getMarkets() {
         Log.d("flowtest", "get market in view model called!")
         viewModelScope.launch(Dispatchers.IO) {
-            marketRepository.getMarketList()
-            marketRepository.marketFlow.collectLatest { markets.postValue(it) }
+            marketRepository.getMarketList().observeForever {
+                markets.postValue(it ?: listOf())
+            }
         }
     }
 
     fun searchInMarkets(phrase: String) {
-        Log.d("searchlist", marketRepository.searchInMarkets(phrase).toString())
-        searchResult.value = marketRepository.searchInMarkets(phrase)
+        searchResult.value = markets.value?.filter { it.name.lowercase().contains(phrase) }
     }
 
     fun getLastFetchedAllMarkets() {
-        searchResult.value = marketRepository.markets
+        searchResult.value = markets.value
     }
 
     suspend fun getMarketDetail(marketName: String): GenericResponse<MarketDetail?> {
@@ -72,9 +72,11 @@ class MarketViewModel @Inject constructor(
     }
 
     fun toggleFavouriteStatus(allMarketsMarketModel: AllMarketsMarketModel) {
-        marketRepository.updateMarketModel(
-            allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite).toMarketModel()
-        )
+        viewModelScope.launch(Dispatchers.IO) {
+            marketRepository.updateMarketModel(
+                allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite).toMarketModel()
+            )
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.safari.traderbot.data
 
+import androidx.lifecycle.LiveData
 import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.StockTick
@@ -36,11 +37,7 @@ class MarketMockRepositoryImpl : MarketRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getMarketList(): List<MarketEntity> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun searchInMarkets(phrase: String): List<MarketEntity> {
+    override suspend fun getMarketList(): LiveData<List<MarketEntity>> {
         TODO("Not yet implemented")
     }
 
@@ -48,9 +45,8 @@ class MarketMockRepositoryImpl : MarketRepository {
         TODO("Not yet implemented")
     }
 
-    override fun updateMarketModel(marketModel: MarketEntity) {
+    override suspend fun updateMarketModel(marketEntity: MarketEntity) {
         TODO("Not yet implemented")
     }
-
 
 }

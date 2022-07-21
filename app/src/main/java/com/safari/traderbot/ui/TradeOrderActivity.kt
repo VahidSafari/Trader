@@ -52,14 +52,14 @@ class TradeOrderActivity : AppCompatActivity() {
 
         lifecycleScope.launchWhenCreated {
             Log.d("flowtest", "market list received!")
-            marketViewModel.getMarkets()
+            marketViewModel.getMarketsLivedata()
         }
 
-        marketViewModel.markets.observe(this@TradeOrderActivity) {
+        marketViewModel.marketsLiveData.observe(this@TradeOrderActivity) {
             marketAdapter.submitList(it)
         }
 
-        marketViewModel.searchResult.observe(this@TradeOrderActivity) {
+        marketViewModel.searchResultLiveData.observe(this@TradeOrderActivity) {
             Log.d("searchresult", "observed $it")
             marketAdapter.submitList(it)
         }
@@ -238,24 +238,20 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private fun setSearchListeners() {
         binding.svMarket.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
+            override fun onQueryTextSubmit(searchPhrase: String?): Boolean {
+                marketViewModel.searchPhraseLiveData.value = searchPhrase
                 return false
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (!newText.isNullOrBlank()) {
-                    marketViewModel.searchInMarkets(newText)
-                } else {
-                    marketViewModel.getLastFetchedAllMarkets()
-                }
-                Log.d("searchresult", "searched for $newText ")
+            override fun onQueryTextChange(searchPhrase: String?): Boolean {
+                marketViewModel.searchPhraseLiveData.value = searchPhrase
+                Log.d("searchresult", "searched for $searchPhrase ")
                 return false
             }
-
         })
 
         binding.svMarket.setOnCloseListener {
-            marketViewModel.getLastFetchedAllMarkets()
+            marketViewModel.searchPhraseLiveData.value = MarketViewModel.GET_ALL_MARKETS_PHRASE
             return@setOnCloseListener false
         }
     }

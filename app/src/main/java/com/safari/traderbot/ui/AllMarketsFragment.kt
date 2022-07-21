@@ -5,12 +5,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
+import com.safari.traderbot.R
 import com.safari.traderbot.databinding.FragmentAllMarketsBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.launch
+import java.net.ConnectException
 
 @AndroidEntryPoint
 class AllMarketsFragment : Fragment() {
@@ -35,18 +40,51 @@ class AllMarketsFragment : Fragment() {
         marketAdapter = AllMarketsAdapter(marketListViewModel)
         binding.rvMarkets.adapter = marketAdapter
 
-        lifecycleScope.launchWhenCreated {
-            marketListViewModel.getMarkets()
+        lifecycleScope.launch(CoroutineExceptionHandler { _, throwable ->
+            if (throwable is ConnectException) {
+                Snackbar.make(
+                    binding.root,
+                    getString(R.string.connection_problem),
+                    Snackbar.LENGTH_LONG
+                ).apply {
+                    setAction(R.string.close) { dismiss() }
+                    show()
+                }
+            }
+        }) {
+            marketListViewModel.getMarketsLivedata()
         }
 
-        marketListViewModel.markets.observe(viewLifecycleOwner) {
+        marketListViewModel.marketsLiveData.observe(viewLifecycleOwner) {
             marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 
-        marketListViewModel.searchResult.observe(viewLifecycleOwner) {
+        marketListViewModel.searchResultLiveData.observe(viewLifecycleOwner) {
             marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 
+        setSearchListeners()
+
+    }
+
+    private fun setSearchListeners() {
+        binding.svMarket.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(searchPhrase: String?): Boolean {
+                marketListViewModel.searchPhraseLiveData.value = searchPhrase
+                return false
+            }
+
+            override fun onQueryTextChange(searchPhrase: String?): Boolean {
+                marketListViewModel.searchPhraseLiveData.value = searchPhrase
+                Log.d("searchresult", "searched for $searchPhrase ")
+                return false
+            }
+        })
+
+        binding.svMarket.setOnCloseListener {
+            marketListViewModel.searchPhraseLiveData.value = MarketViewModel.GET_ALL_MARKETS_PHRASE
+            return@setOnCloseListener false
+        }
     }
 
 }

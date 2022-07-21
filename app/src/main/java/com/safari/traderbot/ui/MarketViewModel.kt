@@ -6,15 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.data.MarketRepository
-import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.entity.MarketEntity
+import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,37 +24,54 @@ class MarketViewModel @Inject constructor(
 
     companion object {
         const val MIN_AMOUNT_UNINITIALIZED = -1.1
+        const val GET_ALL_MARKETS_PHRASE = ""
     }
 
-    val markets = MutableLiveData<List<MarketEntity>>()
-    val searchResult = MutableLiveData<List<MarketEntity>>()
+    val marketsLiveData = MutableLiveData<List<MarketEntity>>()
+    val searchResultLiveData = MediatorLiveData<List<MarketEntity>>()
     val marketOrderResult = MutableLiveData<GenericResponse<MarketOrderResponse>>()
     val favouriteLiveData = MediatorLiveData<List<MarketEntity>>()
+    val searchPhraseLiveData = MutableLiveData<String>()
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 
     init {
-        favouriteLiveData.addSource(markets) {
+
+        favouriteLiveData.addSource(marketsLiveData) {
             val onlyFavouriteMarkets = it.filter { market -> market.isFavourite }
             favouriteLiveData.value = onlyFavouriteMarkets
         }
+
+        searchResultLiveData.addSource(marketsLiveData) { marketList ->
+            val searchResult: List<MarketEntity>? = if (searchPhraseLiveData.value.isNullOrBlank()) {
+                marketList
+            } else {
+                marketList?.filter { it.name.lowercase().contains(searchPhraseLiveData.value!!) }
+            }
+            searchResultLiveData.value = searchResult ?: listOf()
+        }
+
+        searchResultLiveData.addSource(searchPhraseLiveData) { searchPhrase ->
+            val searchResult: List<MarketEntity>? = if (searchPhrase.isNullOrBlank()) {
+                marketsLiveData.value
+            } else {
+                marketsLiveData.value?.filter { it.name.lowercase().contains(searchPhrase) }
+            }
+            searchResultLiveData.value = searchResult ?: listOf()
+        }
+
     }
 
-    fun getMarkets() {
+    fun getMarketsLivedata() {
         Log.d("flowtest", "get market in view model called!")
         viewModelScope.launch(Dispatchers.IO) {
-            marketRepository.getMarketList().observeForever {
-                markets.postValue(it ?: listOf())
+            val marketListLiveData = marketRepository.getMarketList()
+            withContext(Dispatchers.Main) {
+                marketListLiveData.observeForever {
+                marketsLiveData.postValue(it ?: listOf())
+            }
             }
         }
-    }
-
-    fun searchInMarkets(phrase: String) {
-        searchResult.value = markets.value?.filter { it.name.lowercase().contains(phrase) }
-    }
-
-    fun getLastFetchedAllMarkets() {
-        searchResult.value = markets.value
     }
 
     suspend fun getMarketDetail(marketName: String): GenericResponse<MarketDetail?> {
@@ -74,7 +91,8 @@ class MarketViewModel @Inject constructor(
     fun toggleFavouriteStatus(allMarketsMarketModel: AllMarketsMarketModel) {
         viewModelScope.launch(Dispatchers.IO) {
             marketRepository.updateMarketModel(
-                allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite).toMarketModel()
+                allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite)
+                    .toMarketModel()
             )
         }
     }

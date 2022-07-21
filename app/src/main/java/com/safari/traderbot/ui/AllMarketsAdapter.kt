@@ -39,7 +39,7 @@ class AllMarketsAdapter(val viewModel: MarketViewModel) :
         fun setOnClickListeners() {
             binding.ivAllMarketFavourite.setOnClickListener {
                 viewModel.toggleFavouriteStatus(marketModel)
-                viewModel.getMarkets()
+                viewModel.getMarketsLivedata()
             }
         }
 

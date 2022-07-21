@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
@@ -20,7 +21,7 @@ import java.net.ConnectException
 @AndroidEntryPoint
 class AllMarketsFragment : Fragment() {
 
-    private val marketListViewModel: MarketViewModel by viewModels()
+    private lateinit var marketListViewModel: MarketViewModel
 
     private lateinit var marketAdapter: AllMarketsAdapter
 
@@ -37,6 +38,9 @@ class AllMarketsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        marketListViewModel = ViewModelProvider(activity as CoinListActivity)[MarketViewModel::class.java]
+
         marketAdapter = AllMarketsAdapter(marketListViewModel)
         binding.rvMarkets.adapter = marketAdapter
 

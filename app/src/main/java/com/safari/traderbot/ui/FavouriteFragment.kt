@@ -6,13 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.get
 import com.safari.traderbot.databinding.FragmentFavouriteBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class FavouriteFragment : Fragment() {
 
-    private val marketListViewModel: MarketViewModel by viewModels()
+    private lateinit var marketListViewModel: MarketViewModel
 
     private lateinit var favouriteAdapter: FavouriteAdapter
 
@@ -30,10 +32,12 @@ class FavouriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        marketListViewModel = ViewModelProvider(activity as CoinListActivity)[MarketViewModel::class.java]
+
         favouriteAdapter = FavouriteAdapter(marketListViewModel)
         binding.rvMarkets.adapter = favouriteAdapter
 
-        marketListViewModel.favouriteLiveData.observe(viewLifecycleOwner) {
+        marketListViewModel.favouriteLiveData.observe(this) {
             favouriteAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 

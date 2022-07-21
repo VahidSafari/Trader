@@ -30,17 +30,14 @@ class MarketViewModel @Inject constructor(
     val marketsLiveData = MutableLiveData<List<MarketEntity>>()
     val searchResultLiveData = MediatorLiveData<List<MarketEntity>>()
     val marketOrderResult = MutableLiveData<GenericResponse<MarketOrderResponse>>()
-    val favouriteLiveData = MediatorLiveData<List<MarketEntity>>()
+    val favouriteLiveData = MutableLiveData<List<MarketEntity>>()
     val searchPhraseLiveData = MutableLiveData<String>()
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 
     init {
 
-        favouriteLiveData.addSource(marketsLiveData) {
-            val onlyFavouriteMarkets = it.filter { market -> market.isFavourite }
-            favouriteLiveData.value = onlyFavouriteMarkets
-        }
+
 
         searchResultLiveData.addSource(marketsLiveData) { marketList ->
             val searchResult: List<MarketEntity>? = if (searchPhraseLiveData.value.isNullOrBlank()) {
@@ -49,6 +46,9 @@ class MarketViewModel @Inject constructor(
                 marketList?.filter { it.name.lowercase().contains(searchPhraseLiveData.value!!) }
             }
             searchResultLiveData.value = searchResult ?: listOf()
+
+            val onlyFavouriteMarkets = marketList.filter { market -> market.isFavourite }
+            favouriteLiveData.value = onlyFavouriteMarkets
         }
 
         searchResultLiveData.addSource(searchPhraseLiveData) { searchPhrase ->
@@ -68,7 +68,7 @@ class MarketViewModel @Inject constructor(
             val marketListLiveData = marketRepository.getMarketList()
             withContext(Dispatchers.Main) {
                 marketListLiveData.observeForever {
-                marketsLiveData.postValue(it ?: listOf())
+                marketsLiveData.value = it ?: listOf()
             }
             }
         }

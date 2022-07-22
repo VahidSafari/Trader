@@ -11,6 +11,7 @@
         android:id="@+id/tl_market_lists"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        style="@style/TabLayoutTextStyle"
         app:layout_constraintBottom_toTopOf="@id/vp_market_lists"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

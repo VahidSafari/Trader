@@ -33,5 +33,7 @@ class AccountDetailActivity : AppCompatActivity() {
             binding.tvBalance.text = balanceInfo.data.toString()
         }
 
+
+
     }
 }

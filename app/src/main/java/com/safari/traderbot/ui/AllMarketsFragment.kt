@@ -10,6 +10,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
+import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.FragmentAllMarketsBinding
@@ -41,6 +43,9 @@ class AllMarketsFragment : Fragment() {
 
         marketListViewModel = ViewModelProvider(activity as CoinListActivity)[MarketViewModel::class.java]
 
+
+        val dividerItemDecoration = DividerItemDecoration(context, MaterialDividerItemDecoration.VERTICAL)
+        binding.rvMarkets.addItemDecoration(dividerItemDecoration)
         marketAdapter = AllMarketsAdapter(marketListViewModel)
         binding.rvMarkets.adapter = marketAdapter
 
@@ -65,6 +70,17 @@ class AllMarketsFragment : Fragment() {
 
         marketListViewModel.searchResultLiveData.observe(viewLifecycleOwner) {
             marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
+        }
+
+        marketListViewModel.snackBarLiveData.observe(viewLifecycleOwner) {
+            Snackbar.make(
+                binding.root,
+                it,
+                Snackbar.LENGTH_LONG
+            ).apply {
+                setAction(R.string.close) { dismiss() }
+                show()
+            }
         }
 
         setSearchListeners()

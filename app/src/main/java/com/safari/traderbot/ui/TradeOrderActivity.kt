@@ -188,6 +188,17 @@ class TradeOrderActivity : AppCompatActivity() {
 
             })
 
+        marketViewModel.snackBarLiveData.observe(this) {
+            Snackbar.make(
+                binding.root,
+                it,
+                Snackbar.LENGTH_LONG
+            ).apply {
+                setAction(R.string.close) { dismiss() }
+                show()
+            }
+        }
+
     }
 
     private fun setAmountListener() {

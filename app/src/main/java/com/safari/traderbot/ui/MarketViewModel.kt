@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.ConnectException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,6 +33,7 @@ class MarketViewModel @Inject constructor(
     val marketOrderResult = MutableLiveData<GenericResponse<MarketOrderResponse>>()
     val favouriteLiveData = MediatorLiveData<List<MarketEntity>>()
     val searchPhraseLiveData = MutableLiveData<String>()
+    val snackBarLiveData = MutableLiveData<String>()
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 
@@ -43,11 +45,14 @@ class MarketViewModel @Inject constructor(
         }
 
         searchResultLiveData.addSource(marketsLiveData) { marketList ->
-            val searchResult: List<MarketEntity>? = if (searchPhraseLiveData.value.isNullOrBlank()) {
-                marketList
-            } else {
-                marketList?.filter { it.name.lowercase().contains(searchPhraseLiveData.value!!) }
-            }
+            val searchResult: List<MarketEntity>? =
+                if (searchPhraseLiveData.value.isNullOrBlank()) {
+                    marketList
+                } else {
+                    marketList?.filter {
+                        it.name.lowercase().contains(searchPhraseLiveData.value!!)
+                    }
+                }
             searchResultLiveData.value = searchResult ?: listOf()
         }
 
@@ -65,11 +70,20 @@ class MarketViewModel @Inject constructor(
     fun getMarketsLivedata() {
         Log.d("flowtest", "get market in view model called!")
         viewModelScope.launch(Dispatchers.IO) {
-            val marketListLiveData = marketRepository.getMarketList()
-            withContext(Dispatchers.Main) {
-                marketListLiveData.observeForever {
-                marketsLiveData.value = it ?: listOf()
-            }
+            try {
+                val marketListLiveData = marketRepository.getMarketList()
+                withContext(Dispatchers.Main) {
+                    marketListLiveData.observeForever {
+                        marketsLiveData.value = it ?: listOf()
+                    }
+                }
+            } catch (e: Exception) {
+                snackBarLiveData.postValue(
+                    when(e) {
+                        is ConnectException -> "connection problem"
+                        else -> "an error occured while fetching market list"
+                    }
+                )
             }
         }
     }

@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.safari.traderbot.databinding.ItemAllMarketMarketBinding
+import com.safari.traderbot.model.AllMarketsMarketModel
 
 class FavouriteAdapter(private val marketListViewModel: MarketViewModel) :
     ListAdapter<AllMarketsMarketModel, FavouriteAdapter.FavouriteViewHolder>(

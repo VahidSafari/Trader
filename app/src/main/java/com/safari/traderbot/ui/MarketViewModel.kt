@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.data.MarketRepository
 import com.safari.traderbot.entity.MarketEntity
+import com.safari.traderbot.model.AllMarketsMarketModel
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView

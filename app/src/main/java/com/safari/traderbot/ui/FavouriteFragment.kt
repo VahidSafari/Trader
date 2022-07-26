@@ -41,5 +41,7 @@ class FavouriteFragment : Fragment() {
             favouriteAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 
+
+
     }
 }

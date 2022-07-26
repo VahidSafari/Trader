@@ -112,4 +112,10 @@ class MarketViewModel @Inject constructor(
         }
     }
 
+    fun fetchPriceUpdateOfFavouriteMarkets() {
+        viewModelScope.launch {
+            marketRepository.fetchPriceUpdateOfFavouriteMarkets()
+        }
+    }
+
 }

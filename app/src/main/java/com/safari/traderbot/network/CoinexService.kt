@@ -51,4 +51,8 @@ interface CoinexService {
         @Query("market") marketName: String
     ): GenericResponse<SingleMarketStatisticsResponse>
 
+
+    @GET("market/ticker/all")
+    suspend fun getAllMarketsTicker(): GenericResponse<Ticker>
+
 }

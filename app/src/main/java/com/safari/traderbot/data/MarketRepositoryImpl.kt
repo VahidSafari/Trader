@@ -12,6 +12,7 @@ import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import com.safari.traderbot.network.CoinexService
+import com.safari.traderbot.network.CoinexStatusCode
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -37,7 +38,7 @@ class MarketRepositoryImpl @Inject constructor(
         val marketList = coinexService.getMarketList().data!!
         marketDao.insert(
             marketList.map { marketName ->
-                MarketEntity(marketName, false)
+                MarketEntity(marketName, false, 0.0)
             }
         )
         return marketDao.getAll()
@@ -57,6 +58,14 @@ class MarketRepositoryImpl @Inject constructor(
 
     override suspend fun updateMarketModel(marketEntity: MarketEntity) {
         marketDao.update(marketEntity)
+    }
+
+    override suspend fun fetchPriceUpdateOfFavouriteMarkets() {
+        val favouriteMarkets = marketDao.getFavouriteMarkets()
+        val allMarketsTickerResponse = coinexService.getAllMarketsTicker()
+        if (allMarketsTickerResponse.code == CoinexStatusCode.SUCCEEDED) {
+
+        }
     }
 
 }

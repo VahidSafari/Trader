@@ -17,10 +17,18 @@ interface MarketDao {
     @Update
     fun update(market: MarketEntity)
 
+    @Update
+    fun update(market: List<MarketEntity>)
+
     @Query("SELECT * FROM markets")
     fun getAll(): LiveData<List<MarketEntity>>
 
     @Query("SELECT * FROM markets WHERE name LIKE :phrase")
     fun search(phrase : String): LiveData<List<MarketEntity>>
+
+    @Query("SELECT * FROM markets WHERE isFavourite")
+    fun getFavouriteMarkets(): LiveData<List<MarketEntity>>
+
+
 
 }

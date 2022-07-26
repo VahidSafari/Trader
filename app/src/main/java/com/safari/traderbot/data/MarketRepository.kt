@@ -18,4 +18,5 @@ interface MarketRepository {
     suspend fun getMarketList(): LiveData<List<MarketEntity>>
     suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse>
     suspend fun updateMarketModel(marketEntity: MarketEntity)
+    suspend fun fetchPriceUpdateOfFavouriteMarkets()
 }

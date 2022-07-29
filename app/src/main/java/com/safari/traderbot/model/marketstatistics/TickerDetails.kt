@@ -2,7 +2,7 @@ package com.safari.traderbot.model.marketstatistics
 
 import com.google.gson.annotations.SerializedName
 
-data class Ticker(
+data class TickerDetails(
     @SerializedName("buy") var buy: String? = null,
     @SerializedName("buy_amount") var buyAmount: String? = null,
     @SerializedName("open") var open: String? = null,

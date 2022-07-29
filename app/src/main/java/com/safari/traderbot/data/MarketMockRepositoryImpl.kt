@@ -49,7 +49,7 @@ class MarketMockRepositoryImpl : MarketRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun fetchPriceUpdateOfFavouriteMarkets() {
+    override suspend fun fetchPriceUpdateOfFavouriteMarkets(): List<MarketEntity> {
         TODO("Not yet implemented")
     }
 

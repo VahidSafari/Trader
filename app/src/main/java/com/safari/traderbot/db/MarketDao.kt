@@ -9,16 +9,16 @@ import kotlinx.coroutines.flow.Flow
 interface MarketDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(market: MarketEntity)
+    suspend fun insert(market: MarketEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(markets: List<MarketEntity>)
+    suspend fun insert(markets: List<MarketEntity>)
 
     @Update
-    fun update(market: MarketEntity)
+    suspend fun update(market: MarketEntity)
 
     @Update
-    fun update(market: List<MarketEntity>)
+    suspend fun update(market: List<MarketEntity>)
 
     @Query("SELECT * FROM markets")
     fun getAll(): LiveData<List<MarketEntity>>
@@ -27,8 +27,9 @@ interface MarketDao {
     fun search(phrase : String): LiveData<List<MarketEntity>>
 
     @Query("SELECT * FROM markets WHERE isFavourite")
-    fun getFavouriteMarkets(): LiveData<List<MarketEntity>>
+    fun getFavouriteMarketsObservable(): LiveData<List<MarketEntity>>
 
-
+    @Query("SELECT * FROM markets WHERE isFavourite")
+    fun getFavouriteMarkets(): List<MarketEntity>
 
 }

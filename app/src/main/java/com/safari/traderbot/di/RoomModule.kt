@@ -22,7 +22,8 @@ class RoomModule {
             app,
             MarketDB::class.java,
             MarketDB.DATABASE_NAME
-        ).build()
+        ).fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     @Singleton

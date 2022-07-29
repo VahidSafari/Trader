@@ -80,7 +80,7 @@ class TrailingStopService : Service() {
             Log.d(TAG, "observed: $newTick")
 
             if (newTick.isSuccessful()) {
-                val marketStatistics = newTick.data.ticker
+                val marketStatistics = newTick.data.tickerDetails
                 val  buyValue = marketStatistics.buy?.toDouble() ?: Double.MIN_VALUE
 
                 Log.d(

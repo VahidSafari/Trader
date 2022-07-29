@@ -14,10 +14,10 @@ data class MarketOrderParamView(
     fun toMarketOrderParamForBuyOrder(singleMarketStatistics: SingleMarketStatisticsResponse): MarketOrderParam {
         val selectedMarketOrderTickerValue = when (this.orderType.lowercase()) {
             ORDER_TYPE_BUY -> {
-                singleMarketStatistics.ticker.buy!!.toDouble()
+                singleMarketStatistics.tickerDetails.buy!!.toDouble()
             }
             ORDER_TYPE_SELL -> {
-                singleMarketStatistics.ticker.sell!!.toDouble()
+                singleMarketStatistics.tickerDetails.sell!!.toDouble()
             }
             else -> {
                 0.0

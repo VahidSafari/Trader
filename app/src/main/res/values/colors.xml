@@ -12,5 +12,7 @@
     <color name="grey">#D5D5D5</color>
     <color name="green">#69FF5E</color>
 
+    <color name="orange">#dc5540</color>
+    <color name="dark_green">#0ead97</color>
 
 </resources>

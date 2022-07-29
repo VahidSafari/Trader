@@ -8,7 +8,7 @@ import com.safari.traderbot.entity.MarketEntity
     entities = [
         MarketEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MarketDB : RoomDatabase() {

@@ -8,15 +8,19 @@ import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.data.MarketRepository
 import com.safari.traderbot.entity.MarketEntity
 import com.safari.traderbot.model.AllMarketsMarketModel
+import com.safari.traderbot.model.FavouriteMarketModel
 import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.utils.launchPeriodic
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.ConnectException
+import java.util.concurrent.CancellationException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,6 +31,7 @@ class MarketViewModel @Inject constructor(
     companion object {
         const val MIN_AMOUNT_UNINITIALIZED = -1.1
         const val GET_ALL_MARKETS_PHRASE = ""
+        const val INTERVAL_TO_FETCH_TICKERS_IN_MILLIS = 4000L
     }
 
     val marketsLiveData = MutableLiveData<List<MarketEntity>>()
@@ -35,6 +40,7 @@ class MarketViewModel @Inject constructor(
     val favouriteLiveData = MediatorLiveData<List<MarketEntity>>()
     val searchPhraseLiveData = MutableLiveData<String>()
     val snackBarLiveData = MutableLiveData<String>()
+    var fetchingMarketDataJob: Job? = null
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
 
@@ -68,6 +74,15 @@ class MarketViewModel @Inject constructor(
 
     }
 
+    fun toggleFavouriteStatus(favouriteMarketModel: FavouriteMarketModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            marketRepository.updateMarketModel(
+                favouriteMarketModel.copy(isFavourite = !favouriteMarketModel.isFavourite)
+                    .toMarketEntity()
+            )
+        }
+    }
+
     fun getMarketsLivedata() {
         Log.d("flowtest", "get market in view model called!")
         viewModelScope.launch(Dispatchers.IO) {
@@ -80,7 +95,7 @@ class MarketViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 snackBarLiveData.postValue(
-                    when(e) {
+                    when (e) {
                         is ConnectException -> "connection problem"
                         else -> "an error occured while fetching market list"
                     }
@@ -107,15 +122,21 @@ class MarketViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             marketRepository.updateMarketModel(
                 allMarketsMarketModel.copy(isFavourite = !allMarketsMarketModel.isFavourite)
-                    .toMarketModel()
+                    .toMarketEntity()
             )
         }
     }
 
-    fun fetchPriceUpdateOfFavouriteMarkets() {
-        viewModelScope.launch {
-            marketRepository.fetchPriceUpdateOfFavouriteMarkets()
-        }
+    fun startFetchingPriceUpdateOfFavouriteMarkets() {
+        stopFetchingMarketData("starting a new job to fetch market data")
+        fetchingMarketDataJob =
+            viewModelScope.launchPeriodic(INTERVAL_TO_FETCH_TICKERS_IN_MILLIS, Dispatchers.IO) {
+                marketRepository.fetchPriceUpdateOfFavouriteMarkets()
+            }
+    }
+
+    fun stopFetchingMarketData(message: String) {
+        fetchingMarketDataJob?.cancel(CancellationException(message))
     }
 
 }

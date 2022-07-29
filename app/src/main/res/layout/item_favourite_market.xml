@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="itemMarket"
+            type="com.safari.traderbot.model.FavouriteMarketModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_item_favourite_market"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="4dp">
+
+        <TextView
+            android:id="@+id/tv_favourite_market_name"
+            style="@style/Theme.TraderBot.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="@{itemMarket.marketName}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="DOGEBTC" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="64dp"
+            android:backgroundTint="@{itemMarket.isGoingUp ? @color/dark_green : @color/orange}"
+            app:cardCornerRadius="4dp"
+            android:focusable="false"
+            android:clickable="false"
+            android:minWidth="74dp"
+            android:maxWidth="74dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/iv_favourite_toggler"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:backgroundTint="@color/dark_green">
+
+            <TextView
+                android:id="@+id/tv_favourite_price"
+                style="@style/Theme.TraderBot.Text.Price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="@{String.valueOf(itemMarket.price)}"
+                tools:text="0.19992" />
+
+        </androidx.cardview.widget.CardView>
+
+        <ImageView
+            android:id="@+id/iv_favourite_toggler"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
+            android:padding="4dp"
+            android:src="@{itemMarket.isFavourite? @drawable/icon_star : @drawable/icon_empty_star}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/icon_empty_star" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

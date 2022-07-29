@@ -6,5 +6,5 @@ data class SingleMarketStatisticsResponse(
     @SerializedName("date")
     val date: Long,
     @SerializedName("ticker")
-    val ticker: Ticker
+    val tickerDetails: TickerDetails
 )

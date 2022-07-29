@@ -60,12 +60,19 @@ class MarketRepositoryImpl @Inject constructor(
         marketDao.update(marketEntity)
     }
 
-    override suspend fun fetchPriceUpdateOfFavouriteMarkets() {
+    override suspend fun fetchPriceUpdateOfFavouriteMarkets(): List<MarketEntity> {
         val favouriteMarkets = marketDao.getFavouriteMarkets()
         val allMarketsTickerResponse = coinexService.getAllMarketsTicker()
+        val toBeUpdatedMarketEntities = mutableListOf<MarketEntity>()
         if (allMarketsTickerResponse.code == CoinexStatusCode.SUCCEEDED) {
-
+            favouriteMarkets.forEach { favouritedMarket ->
+                allMarketsTickerResponse.data.tickerDetails[favouritedMarket.name]?.buy?.toDoubleOrNull()?.let { newPrice ->
+                    toBeUpdatedMarketEntities.add(favouritedMarket.copy(price = newPrice))
+                }
+            }
         }
+        marketDao.update(toBeUpdatedMarketEntities)
+        return marketDao.getFavouriteMarkets()
     }
 
 }

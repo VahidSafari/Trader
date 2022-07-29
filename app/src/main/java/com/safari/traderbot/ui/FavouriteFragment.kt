@@ -1,13 +1,14 @@
 package com.safari.traderbot.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.get
+import androidx.recyclerview.widget.DividerItemDecoration
+import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.safari.traderbot.databinding.FragmentFavouriteBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -32,15 +33,25 @@ class FavouriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        marketListViewModel = ViewModelProvider(activity as CoinListActivity)[MarketViewModel::class.java]
+        marketListViewModel =
+            ViewModelProvider(activity as CoinListActivity)[MarketViewModel::class.java]
+
+        val dividerItemDecoration = DividerItemDecoration(context, MaterialDividerItemDecoration.VERTICAL)
+        binding.rvMarkets.addItemDecoration(dividerItemDecoration)
 
         favouriteAdapter = FavouriteAdapter(marketListViewModel)
         binding.rvMarkets.adapter = favouriteAdapter
 
-        marketListViewModel.favouriteLiveData.observe(this) {
-            favouriteAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
+        marketListViewModel.favouriteLiveData.observe(this) { newMarketList ->
+            favouriteAdapter.submitList(newMarketList.map { market ->
+                market.toFavouriteMarketModel(
+                    favouriteAdapter.currentList.find { it.marketName == market.name }?.price ?: Double.MIN_VALUE < market.price
+                )
+            })
+            Log.d("favouriteUpdate", newMarketList.toString())
         }
 
+        marketListViewModel.startFetchingPriceUpdateOfFavouriteMarkets()
 
 
     }

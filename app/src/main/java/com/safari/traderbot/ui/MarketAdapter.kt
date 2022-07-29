@@ -27,6 +27,8 @@ class MarketAdapter(
 
     lateinit var selectedMarket: SelectedMarketModel
 
+    fun isSelectedMarketInitialized() = ::selectedMarket.isInitialized
+
     inner class MarketViewHolder(private val binding: ItemMarketBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

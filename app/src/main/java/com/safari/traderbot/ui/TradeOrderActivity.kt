@@ -26,6 +26,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Exception
+import kotlin.math.log
 
 @AndroidEntryPoint
 class TradeOrderActivity : AppCompatActivity() {
@@ -102,7 +104,11 @@ class TradeOrderActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             when (submitResponse.code) {
                 CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
-                    marketViewModel.getMinAmount(submitResponse.data.market, submitResponse.data.orderType)
+                    try {
+                        marketViewModel.getMinAmount(submitResponse.data.market, submitResponse.data.orderType)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
                 else -> {
                     Log.d("ommaree", submitResponse.message)
@@ -144,6 +150,12 @@ class TradeOrderActivity : AppCompatActivity() {
     }
 
     private fun onSubmitOrderClicked() {
+
+        if (!marketAdapter.isSelectedMarketInitialized()) {
+            showSnackBar("please select a market")
+            return
+        }
+
         binding.submitOrderButton.isEnabled = false
         binding.submitTrailingStopOrderButton.isEnabled = false
         orderMainType = OrderMainType.NORMAL

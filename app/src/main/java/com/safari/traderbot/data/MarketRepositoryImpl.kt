@@ -47,12 +47,7 @@ class MarketRepositoryImpl @Inject constructor(
 
 
     override suspend fun putMarketOrder(marketOrderParamView: MarketOrderParamView): GenericResponse<MarketOrderResponse> {
-        val marketOrderParam = if (marketOrderParamView.orderType == ORDER_TYPE_BUY) {
-            val singleMarketStatistics = getSingleMarketStatistics(marketOrderParamView.marketName)
-            marketOrderParamView.toMarketOrderParamForBuyOrder(singleMarketStatistics.data)
-        } else {
-            marketOrderParamView.toMarketOrderParamForSellOrder()
-        }
+        val marketOrderParam = marketOrderParamView.toMarketOrderParam()
         return coinexService.submitMarketOrder(marketOrderParam)
     }
 

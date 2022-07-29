@@ -65,6 +65,8 @@ class TradeOrderActivity : AppCompatActivity() {
 
         marketViewModel.marketOrderResult.observe(this, ::onNewMarketResponseReceived)
 
+        marketViewModel.updateAmountErrorTriggerLiveData.observe(this) { updateAmountError() }
+
         lifecycleScope.launchWhenCreated { marketViewModel.getMarketsLivedata() }
 
     }
@@ -100,29 +102,13 @@ class TradeOrderActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             when (submitResponse.code) {
                 CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
-                    val marketDetail = withContext(Dispatchers.IO) {
-                        return@withContext marketViewModel.getMarketDetail(
-                            marketAdapter.selectedMarket.name
-                        )
-                    }
-                    marketViewModel.minAmount.value =
-                        marketDetail.data?.minAmount?.toDouble()
-                            ?: MarketViewModel.MIN_AMOUNT_UNINITIALIZED
-
-                    updateAmountError()
+                    marketViewModel.getMinAmount(submitResponse.data.market, submitResponse.data.orderType)
                 }
                 else -> {
                     Log.d("ommaree", submitResponse.message)
                     Log.d("ommaree", submitResponse.data.toString())
 
-                    Snackbar.make(
-                        binding.root,
-                        submitResponse.message,
-                        Snackbar.LENGTH_LONG
-                    ).apply {
-                        setAction(R.string.close) { dismiss() }
-                        show()
-                    }
+                    showSnackBar(submitResponse.message)
 
                     if (submitResponse.isSuccessful()) {
                         when (orderMainType) {

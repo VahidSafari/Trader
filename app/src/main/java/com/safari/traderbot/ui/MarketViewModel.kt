@@ -7,9 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safari.traderbot.data.MarketRepository
 import com.safari.traderbot.entity.MarketEntity
-import com.safari.traderbot.model.AllMarketsMarketModel
-import com.safari.traderbot.model.FavouriteMarketModel
-import com.safari.traderbot.model.GenericResponse
+import com.safari.traderbot.model.*
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
@@ -40,6 +38,7 @@ class MarketViewModel @Inject constructor(
     val favouriteLiveData = MediatorLiveData<List<MarketEntity>>()
     val searchPhraseLiveData = MutableLiveData<String>()
     val snackBarLiveData = MutableLiveData<String>()
+    val updateAmountErrorTriggerLiveData = MutableLiveData<Any>()
     var fetchingMarketDataJob: Job? = null
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
@@ -106,6 +105,31 @@ class MarketViewModel @Inject constructor(
 
     suspend fun getMarketDetail(marketName: String): GenericResponse<MarketDetail?> {
         return marketRepository.getSingleMarketInfo(marketName)
+    }
+
+    fun getMinAmount(marketName: String, orderType: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val marketDetail = getMarketDetail(marketName)
+            val singleMarketStatistics = marketRepository.getSingleMarketStatistics(marketName)
+            val selectedMarketOrderTickerValue = when (orderType.lowercase()) {
+                ORDER_TYPE_BUY -> {
+                    singleMarketStatistics.data.tickerDetails.buy!!.toDouble()
+                }
+                ORDER_TYPE_SELL -> {
+                    singleMarketStatistics.data.tickerDetails.sell!!.toDouble()
+
+                }
+                else -> {
+                    0.0
+                }
+            }
+
+            val minAmountInTargetMarket = marketDetail.data?.minAmount?.toDouble()
+                ?.times(selectedMarketOrderTickerValue)
+
+            minAmount.value = minAmountInTargetMarket ?: MIN_AMOUNT_UNINITIALIZED
+            updateAmountErrorTriggerLiveData.postValue(Any())
+        }
     }
 
     fun resetMinAmount() {

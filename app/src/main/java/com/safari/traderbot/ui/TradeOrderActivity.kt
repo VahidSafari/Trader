@@ -14,7 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
+import com.safari.traderbot.model.GenericResponse
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
+import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
@@ -50,17 +52,15 @@ class TradeOrderActivity : AppCompatActivity() {
         marketAdapter = MarketAdapter(marketViewModel)
         binding.rvMarkets.adapter = marketAdapter
 
-        lifecycleScope.launchWhenCreated {
-            Log.d("flowtest", "market list received!")
-            marketViewModel.getMarketsLivedata()
-        }
+        setListeners()
+
+        lifecycleScope.launchWhenCreated { marketViewModel.getMarketsLivedata() }
 
         marketViewModel.marketsLiveData.observe(this@TradeOrderActivity) {
             marketAdapter.submitList(it)
         }
 
         marketViewModel.searchResultLiveData.observe(this@TradeOrderActivity) {
-            Log.d("searchresult", "observed $it")
             marketAdapter.submitList(it)
         }
 
@@ -76,129 +76,141 @@ class TradeOrderActivity : AppCompatActivity() {
             StockApi.ORDER_TYPE.values()
         )
 
-        binding.submitOrderButton.setOnClickListener {
-            binding.submitOrderButton.isEnabled = false
-            binding.submitTrailingStopOrderButton.isEnabled = false
-            orderMainType = OrderMainType.NORMAL
-
-            Log.d("submitClick", "submit normal order clicked!")
-
-            resetAmountError()
-
-            lifecycleScope.launch(Dispatchers.Main) {
-
-                binding.pgLoading.visibility = View.VISIBLE
-
-                marketViewModel.submitMarketOrder(
-                    MarketOrderParamView(
-                        marketName = marketAdapter.selectedMarket.name,
-                        orderType = binding.typeDropDown.selectedItem.toString(),
-                        selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
-                        tonce = System.currentTimeMillis()
-                    )
-                )
-
-            }
+        marketViewModel.marketOrderResult.observe(this) { submitResponse ->
+            onNewMarketResponseReceived(submitResponse)
         }
-
-        binding.submitTrailingStopOrderButton.setOnClickListener {
-            binding.submitTrailingStopOrderButton.isEnabled = false
-            binding.submitOrderButton.isEnabled = false
-            orderMainType = OrderMainType.TSL
-
-            Log.d("submitClick", "submit trailing stop loss order clicked!")
-
-            resetAmountError()
-
-            lifecycleScope.launch(Dispatchers.Main) {
-
-                binding.pgLoading.visibility = View.VISIBLE
-
-                marketViewModel.submitMarketOrder(
-                    MarketOrderParamView(
-                        marketName = marketAdapter.selectedMarket.name,
-                        orderType = binding.typeDropDown.selectedItem.toString(),
-                        selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
-                        tonce = System.currentTimeMillis()
-                    )
-                )
-
-            }
-        }
-
-
-        setSearchListeners()
-        setAmountListener()
-
-        marketViewModel.marketOrderResult.observe(
-            this@TradeOrderActivity,
-            { submitResponse ->
-
-                lifecycleScope.launch(Dispatchers.Main) {
-                    when (submitResponse.code) {
-                        CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
-                            val marketDetail = withContext(Dispatchers.IO) {
-                                return@withContext marketViewModel.getMarketDetail(
-                                    marketAdapter.selectedMarket.name
-                                )
-                            }
-                            marketViewModel.minAmount.value =
-                                marketDetail.data?.minAmount?.toDouble()
-                                    ?: MarketViewModel.MIN_AMOUNT_UNINITIALIZED
-
-                            updateAmountError()
-                        }
-                        else -> {
-                            Log.d("ommaree", submitResponse.message)
-                            Log.d("ommaree", submitResponse.data.toString())
-
-                            Snackbar.make(
-                                binding.root,
-                                submitResponse.message,
-                                Snackbar.LENGTH_LONG
-                            ).apply {
-                                setAction(R.string.close) { dismiss() }
-                                show()
-                            }
-
-                            if (submitResponse.isSuccessful()) {
-                                when(orderMainType) {
-                                    OrderMainType.TSL -> {
-                                        if (!isServiceRunning(this@TradeOrderActivity, TrailingStopService::class.java)) {
-                                            val intent = Intent(applicationContext, TrailingStopService::class.java)
-                                            intent.putExtra(MARKET_NAME_PARAM, marketAdapter.selectedMarket.name)
-                                            startService(intent)
-                                            Log.d("trailingStopStrategy", "service started")
-                                        }
-                                    }
-                                    else -> {}
-                                }
-                            }
-
-                        }
-
-                    }
-
-                    Log.d("putmarkerorder", submitResponse.data.toString())
-
-                    binding.pgLoading.visibility = View.GONE
-                    binding.submitOrderButton.isEnabled = true
-                    binding.submitTrailingStopOrderButton.isEnabled = true
-                }
-
-            })
 
         marketViewModel.snackBarLiveData.observe(this) {
-            Snackbar.make(
-                binding.root,
-                it,
-                Snackbar.LENGTH_LONG
-            ).apply {
-                setAction(R.string.close) { dismiss() }
-                show()
-            }
+           showSnackBar(it)
         }
 
+    }
+
+    private fun setListeners() {
+        binding.submitOrderButton.setOnClickListener { onSubmitOrderClicked() }
+        binding.submitTrailingStopOrderButton.setOnClickListener { onTrailingStopButtonClicked() }
+        setSearchListeners()
+        setAmountListener()
+    }
+
+    private fun onNewMarketResponseReceived(submitResponse: GenericResponse<MarketOrderResponse>) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            when (submitResponse.code) {
+                CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
+                    val marketDetail = withContext(Dispatchers.IO) {
+                        return@withContext marketViewModel.getMarketDetail(
+                            marketAdapter.selectedMarket.name
+                        )
+                    }
+                    marketViewModel.minAmount.value =
+                        marketDetail.data?.minAmount?.toDouble()
+                            ?: MarketViewModel.MIN_AMOUNT_UNINITIALIZED
+
+                    updateAmountError()
+                }
+                else -> {
+                    Log.d("ommaree", submitResponse.message)
+                    Log.d("ommaree", submitResponse.data.toString())
+
+                    Snackbar.make(
+                        binding.root,
+                        submitResponse.message,
+                        Snackbar.LENGTH_LONG
+                    ).apply {
+                        setAction(R.string.close) { dismiss() }
+                        show()
+                    }
+
+                    if (submitResponse.isSuccessful()) {
+                        when(orderMainType) {
+                            OrderMainType.TSL -> {
+                                startTSL()
+                            }
+                            else -> {}
+                        }
+                    }
+
+                }
+
+            }
+
+            Log.d("putmarkerorder", submitResponse.data.toString())
+
+            binding.pgLoading.visibility = View.GONE
+            binding.submitOrderButton.isEnabled = true
+            binding.submitTrailingStopOrderButton.isEnabled = true
+        }
+
+    }
+
+    private fun showSnackBar(message: String) {
+        Snackbar.make(
+            binding.root,
+            message,
+            Snackbar.LENGTH_LONG
+        ).apply {
+            setAction(R.string.close) { dismiss() }
+            show()
+        }
+    }
+
+    private fun onSubmitOrderClicked() {
+        binding.submitOrderButton.isEnabled = false
+        binding.submitTrailingStopOrderButton.isEnabled = false
+        orderMainType = OrderMainType.NORMAL
+
+        Log.d("submitClick", "submit normal order clicked!")
+
+        resetAmountError()
+
+        lifecycleScope.launch(Dispatchers.Main) {
+
+            binding.pgLoading.visibility = View.VISIBLE
+
+            marketViewModel.submitMarketOrder(
+                MarketOrderParamView(
+                    marketName = marketAdapter.selectedMarket.name,
+                    orderType = binding.typeDropDown.selectedItem.toString(),
+                    selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
+                    tonce = System.currentTimeMillis()
+                )
+            )
+
+        }
+    }
+
+    private fun onTrailingStopButtonClicked() {
+        binding.submitTrailingStopOrderButton.isEnabled = false
+        binding.submitOrderButton.isEnabled = false
+        orderMainType = OrderMainType.TSL
+
+        Log.d("submitClick", "submit trailing stop loss order clicked!")
+
+        resetAmountError()
+
+        lifecycleScope.launch(Dispatchers.Main) {
+
+            binding.pgLoading.visibility = View.VISIBLE
+
+            marketViewModel.submitMarketOrder(
+                MarketOrderParamView(
+                    marketName = marketAdapter.selectedMarket.name,
+                    orderType = binding.typeDropDown.selectedItem.toString(),
+                    selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
+                    tonce = System.currentTimeMillis()
+                )
+            )
+
+        }
+    }
+
+    private fun startTSL() {
+        if (!isServiceRunning(this@TradeOrderActivity, TrailingStopService::class.java)) {
+            val intent = Intent(applicationContext, TrailingStopService::class.java)
+            intent.putExtra(MARKET_NAME_PARAM, marketAdapter.selectedMarket.name)
+            startService(intent)
+            Log.d("trailingStopStrategy", "service started")
+        }
     }
 
     private fun setAmountListener() {

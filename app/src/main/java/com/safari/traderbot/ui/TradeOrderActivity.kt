@@ -49,41 +49,44 @@ class TradeOrderActivity : AppCompatActivity() {
         binding = ActivityTradeOrderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        marketAdapter = MarketAdapter(marketViewModel)
-        binding.rvMarkets.adapter = marketAdapter
+        initTypeDropDown()
+
+        initMarketRecyclerView()
 
         setListeners()
 
+        marketViewModel.minAmount.observe(this, ::onMinAmountChanged)
+
+        marketViewModel.snackBarLiveData.observe(this, ::showSnackBar)
+
+        marketViewModel.marketsLiveData.observe(this, marketAdapter::submitList)
+
+        marketViewModel.searchResultLiveData.observe(this, marketAdapter::submitList)
+
+        marketViewModel.marketOrderResult.observe(this, ::onNewMarketResponseReceived)
+
         lifecycleScope.launchWhenCreated { marketViewModel.getMarketsLivedata() }
 
-        marketViewModel.marketsLiveData.observe(this@TradeOrderActivity) {
-            marketAdapter.submitList(it)
-        }
+    }
 
-        marketViewModel.searchResultLiveData.observe(this@TradeOrderActivity) {
-            marketAdapter.submitList(it)
-        }
-
-        marketViewModel.minAmount.observe(this) {
-            if (it == MarketViewModel.MIN_AMOUNT_UNINITIALIZED) {
-                resetAmountError()
-            }
-        }
-
+    private fun initTypeDropDown() {
         binding.typeDropDown.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
             StockApi.ORDER_TYPE.values()
         )
+    }
 
-        marketViewModel.marketOrderResult.observe(this) { submitResponse ->
-            onNewMarketResponseReceived(submitResponse)
+    private fun initMarketRecyclerView() {
+        marketAdapter = MarketAdapter(marketViewModel)
+        binding.rvMarkets.adapter = marketAdapter
+
+    }
+
+    private fun onMinAmountChanged(minAmount: Double) {
+        if (minAmount == MarketViewModel.MIN_AMOUNT_UNINITIALIZED) {
+            resetAmountError()
         }
-
-        marketViewModel.snackBarLiveData.observe(this) {
-           showSnackBar(it)
-        }
-
     }
 
     private fun setListeners() {
@@ -122,7 +125,7 @@ class TradeOrderActivity : AppCompatActivity() {
                     }
 
                     if (submitResponse.isSuccessful()) {
-                        when(orderMainType) {
+                        when (orderMainType) {
                             OrderMainType.TSL -> {
                                 startTSL()
                             }

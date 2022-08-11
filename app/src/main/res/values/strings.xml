@@ -4,11 +4,12 @@
     <string name="amount">1.0001</string>
     <string name="submit_order">submit order</string>
     <string name="close">CLOSE</string>
-    <string name="amount_to_order">amount to order</string>
+    <string name="amount_to_order">Amount to order</string>
     <string name="submit_trailing_stop_loss_order">submit TSL order</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="all_markets">All Markets</string>
     <string name="favourites">Favourite Markets</string>
     <string name="connection_problem">Could not connect to server</string>
+    <string name="stop_percent">Stop Percent</string>
 </resources>

@@ -4,6 +4,7 @@ import android.app.*
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -19,20 +20,21 @@ import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
 import com.safari.traderbot.ui.MainActivity
 import com.safari.traderbot.utils.readInstanceProperty
-import kotlinx.coroutines.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TrailingStopService : Service() {
+class TrailingStopService : LifecycleService() {
 
     companion object {
-        private const val STOP_PERCENT = 0.9999
-        private const val NOTIFICATION_ID = 1
+        private const val NOTIFICATION_ID = 1000102
         private const val timeFrameInMilliseconds = 4000L
         private const val TAG = "trailingStopStrategy"
 
         const val MARKET_NAME_PARAM = "MARKET_NAME_PARAM"
+        const val MARKET_STOP_PERCENT_PARAM = "MARKET_STOP_PERCENT_PARAM"
 
         val targetMarkets = listOf(
             "USDT",
@@ -43,30 +45,47 @@ class TrailingStopService : Service() {
 
     }
 
-    private var maximumSeenPrice: Double = Double.MIN_VALUE
-    private var lastSeenPrice: Double = Double.MIN_VALUE
+    private val marketModels = mutableMapOf<String, MarketTrailingStopModel>()
 
     @Inject
     lateinit var marketRepository: MarketRepository
 
-    private val accountDataSource = AccountDataSource()
+    @Inject
+    lateinit var accountDataSource: AccountDataSource
+
+    private var isMaxUpdateNeeded = false
 
     private lateinit var getMarketInfoJob: Job
 
-    //TODO: make market dynamic
-    private var currentMarketName = "DOGE"
-    private var targetMarketName = "USDT"
-    private var currentMarketAndTargetMarketName: String = currentMarketName + targetMarketName
-
     override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        currentMarketAndTargetMarketName = intent?.extras?.get(MARKET_NAME_PARAM).toString()
-        targetMarketName = targetMarkets.first { currentMarketAndTargetMarketName.endsWith(it) }
-        currentMarketName = currentMarketAndTargetMarketName.dropLast(currentMarketAndTargetMarketName.length)
+        super.onStartCommand(intent, flags, startId)
+        Log.d(TAG, "onStartCommand: ")
+        extractParamValues(intent?.extras)
         return START_STICKY
+    }
+
+    private fun extractParamValues(bundle: Bundle?) {
+        val marketNameParam = bundle?.getString(MARKET_NAME_PARAM)
+        val stopPercentParam = bundle?.getDouble(MARKET_STOP_PERCENT_PARAM)
+        if (marketNameParam != null && stopPercentParam != null) {
+            if (marketModels.containsKey(marketNameParam)) {
+                marketModels[marketNameParam] = marketModels[marketNameParam]!!.copy(stopPercent = stopPercentParam)
+            } else {
+                marketModels[marketNameParam] = MarketTrailingStopModel(stopPercentParam, -1.0, -1.0)
+            }
+        }
+    }
+
+    private fun extractCurrentMarketName(marketAndTargetMarket: String): String {
+        val targetMarketName: String = targetMarkets.first {
+            marketAndTargetMarket.endsWith(it)
+        }
+        return marketAndTargetMarket.dropLast(targetMarketName.length)
     }
 
     override fun onCreate() {
@@ -75,102 +94,126 @@ class TrailingStopService : Service() {
         showForegroundNotification("Trader App Is Running")
 
         getMarketInfoInAnInterval()
-        marketInfoLiveData.observeForever { newTick ->
+        lifecycleScope.launch {
+            marketsInfoStateFlow.collect { newMarketWithTick ->
 
-            Log.d(TAG, "observed: $newTick")
+                if (newMarketWithTick == null) return@collect
+                if (marketModels[newMarketWithTick.first] == null) return@collect
 
-            if (newTick.isSuccessful()) {
-                val marketStatistics = newTick.data.tickerDetails
-                val  buyValue = marketStatistics.buy?.toDouble() ?: Double.MIN_VALUE
+                val currentMarketModel = marketModels[newMarketWithTick.first]!!
 
-                Log.d(
-                    TAG,
-                    "${
-                        when {
-                            buyValue < lastSeenPrice -> {
-                                "going down "
-                            }
+                isMaxUpdateNeeded = false
 
-                            buyValue > lastSeenPrice -> {
-                                "going up "
-                            }
+                Log.d(TAG, "observed: $newMarketWithTick")
 
-                            else -> {
-                                "going stable "
-                            }
-                        }
-                    } -> new buy price: $buyValue, last seen price: $lastSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
-                )
+                if (newMarketWithTick.second.isSuccessful()) {
+                    val marketStatistics = newMarketWithTick.second.data.tickerDetails
+                    val buyValue = marketStatistics.buy?.toDouble() ?: -1.0
 
-                Log.d(TAG, "new ticker: $newTick")
-                when {
-
-                    buyValue > maximumSeenPrice -> {
-                        maximumSeenPrice = buyValue
-                        Log.d(
-                            TAG,
-                            "going upper than max -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
-                        )
-                    }
-
-                    buyValue < maximumSeenPrice * STOP_PERCENT -> {
-                        Log.d(
-                            TAG,
-                            "stop 3ed -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
-                        )
-                        GlobalScope.launch(Dispatchers.IO) {
-
-                            val balanceResponse = accountDataSource.getBalanceInfo().data
-
-                            if (balanceResponse != null) {
-
-                                val balanceInfo = readInstanceProperty<MarketBalanceInfo, BalanceInfo>(balanceResponse, currentMarketName)
-
-                                Log.d(TAG, "balance info result: $balanceInfo")
-
-                                val marketOrderResult = marketRepository.putMarketOrder(
-                                    MarketOrderParamView(
-                                        marketName = currentMarketAndTargetMarketName,
-                                        orderType = ORDER_TYPE_SELL,
-                                        selectedMarketOrderAmount = balanceInfo.available.toDouble(),
-                                        tonce = System.currentTimeMillis()
-                                    )
-                                )
-
-                                if (marketOrderResult.isSuccessful()) {
-                                    getMarketInfoJob.cancel("COMPLETED THE TRAILING STOP LOSS", Throwable())
+                    Log.d(TAG, "new ticker: $newMarketWithTick")
+                    Log.d(
+                        TAG,
+                        "${
+                            when {
+                                buyValue < currentMarketModel.lastSeenPrice -> {
+                                    "going down ↓"
                                 }
 
-                                Log.d(TAG, "market order result: $marketOrderResult")
+                                buyValue > currentMarketModel.lastSeenPrice -> {
+                                    "going up ↑"
+                                }
+
+                                else -> {
+                                    "going stable →"
+                                }
+                            }
+                        } -> newBuyPrice: $buyValue, LastSeenPrice: $currentMarketModel.lastSeenPrice, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
+                    )
+
+                    when {
+
+                        buyValue > currentMarketModel.maxSeenPrice -> {
+                            isMaxUpdateNeeded = true
+                            Log.d(
+                                TAG,
+                                "GoingUpperThanMax ↑ NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
+                            )
+                        }
+
+                        buyValue < currentMarketModel.maxSeenPrice * (1 - currentMarketModel.stopPercent) -> {
+                            Log.d(
+                                TAG,
+                                "stopped! -> NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
+                            )
+                            lifecycleScope.launch(Dispatchers.IO) {
+
+                                val balanceResponse = accountDataSource.getBalanceInfo().data
+
+                                if (balanceResponse != null) {
+
+                                    val balanceInfo =
+                                        readInstanceProperty<MarketBalanceInfo, BalanceInfo>(
+                                            balanceResponse,
+                                            extractCurrentMarketName(newMarketWithTick.first)
+                                        )
+
+                                    Log.d(TAG, "BalanceInfoResult: $balanceInfo")
+
+                                    val marketOrderResult = marketRepository.putMarketOrder(
+                                        MarketOrderParamView(
+                                            marketName = newMarketWithTick.first,
+                                            orderType = ORDER_TYPE_SELL,
+                                            selectedMarketOrderAmount = balanceInfo.available.toDouble(),
+                                            tonce = System.currentTimeMillis()
+                                        )
+                                    )
+
+                                    if (marketOrderResult.isSuccessful()) {
+
+                                        getMarketInfoJob.cancel(
+                                            "COMPLETED THE TRAILING STOP LOSS FOR ${newMarketWithTick.first}",
+                                            Throwable()
+                                        )
+                                    }
+
+                                    Log.d(TAG, "MarketOrderResult: $marketOrderResult")
+
+                                }
 
                             }
-
-                        }
 //
+                        }
+
+                        buyValue == currentMarketModel.maxSeenPrice -> {
+                            Log.d(
+                                TAG,
+                                "GoingStableWithMax → NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice}"
+                            )
+                        }
+
+                        else -> {
+                            Log.d(
+                                TAG,
+                                "GoingDownerThanMax ↑ NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
+                            )
+                        }
+
                     }
 
-                    buyValue == maximumSeenPrice -> {
-                        Log.d(
-                            TAG,
-                            "going stable with max -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice"
-                        )
+                    marketModels[newMarketWithTick.first] = currentMarketModel.copy(lastSeenPrice = buyValue)
+
+                    if (isMaxUpdateNeeded) {
+                        marketModels[newMarketWithTick.first] = currentMarketModel.copy(maxSeenPrice = buyValue)
                     }
 
-                    else -> {
-                        Log.d(
-                            TAG,
-                            "going downer than max -> new buy price: $buyValue, maximum seen price: $maximumSeenPrice, ratio: ${buyValue / maximumSeenPrice}"
-                        )
-                    }
+                    Log.d(
+                        TAG,
+                        "--------------------------------------------------------------------------------------------------------------------------------"
+                    )
 
                 }
 
-                lastSeenPrice = buyValue
-
-                Log.d(TAG, "--------------------------------------------------------------------------------------------------------------------------------")
-
             }
-
         }
 
     }
@@ -215,17 +258,25 @@ class TrailingStopService : Service() {
         return channelId
     }
 
-    private val marketInfoLiveData: MutableLiveData<GenericResponse<SingleMarketStatisticsResponse>> = MutableLiveData()
+    private val marketsInfoStateFlow: MutableStateFlow<Pair<String, GenericResponse<SingleMarketStatisticsResponse>>?> =
+        MutableStateFlow(null)
 
     private fun getMarketInfoInAnInterval() {
-        getMarketInfoJob = GlobalScope.launch(Dispatchers.IO) {
+        getMarketInfoJob = lifecycleScope.launch(Dispatchers.IO) {
             while (isActive) {
-                try {
-                    marketInfoLiveData.postValue(marketRepository.getSingleMarketStatistics(currentMarketAndTargetMarketName))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                } finally {
-                    delay(timeFrameInMilliseconds)
+                marketModels.forEach { marketWithStopPercent ->
+                    try {
+                        marketsInfoStateFlow.emit(
+                            Pair(
+                                marketWithStopPercent.key,
+                                marketRepository.getSingleMarketStatistics(marketWithStopPercent.key)
+                            )
+                        )
+                    } catch (e: Exception) {
+                        throw e
+                    } finally {
+                        delay(timeFrameInMilliseconds)
+                    }
                 }
             }
         }

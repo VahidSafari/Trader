@@ -21,13 +21,10 @@ import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
 import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_NAME_PARAM
-import com.safari.traderbot.utils.isServiceRunning
+import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_STOP_PERCENT_PARAM
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.lang.Exception
-import kotlin.math.log
 
 @AndroidEntryPoint
 class TradeOrderActivity : AppCompatActivity() {
@@ -40,7 +37,7 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private enum class OrderMainType {
         NORMAL,
-        TSL
+        TRAILING_STOP_LOSS
     }
 
     private lateinit var orderMainType: OrderMainType
@@ -105,36 +102,37 @@ class TradeOrderActivity : AppCompatActivity() {
             when (submitResponse.code) {
                 CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
                     try {
-                        marketViewModel.getMinAmount(submitResponse.data.market, submitResponse.data.orderType)
+                        marketViewModel.getMinAmount(
+                            submitResponse.data.market,
+                            submitResponse.data.orderType
+                        )
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }
                 else -> {
-                    Log.d("ommaree", submitResponse.message)
-                    Log.d("ommaree", submitResponse.data.toString())
-
                     showSnackBar(submitResponse.message)
-
-                    if (submitResponse.isSuccessful()) {
-                        when (orderMainType) {
-                            OrderMainType.TSL -> {
-                                startTSL()
-                            }
-                            else -> {}
-                        }
-                    }
-
                 }
 
             }
 
             Log.d("putmarkerorder", submitResponse.data.toString())
 
-            binding.pgLoading.visibility = View.GONE
-            binding.submitOrderButton.isEnabled = true
-            binding.submitTrailingStopOrderButton.isEnabled = true
+            enableOrderButtonsAndHideLoading()
         }
+
+    }
+
+    private fun enableOrderButtonsAndHideLoading() {
+        binding.pgLoading.visibility = View.GONE
+        binding.submitOrderButton.isEnabled = true
+        binding.submitTrailingStopOrderButton.isEnabled = true
+    }
+
+    private fun disableOrderButtonsAndShowLoading() {
+        binding.pgLoading.visibility = View.VISIBLE
+        binding.submitOrderButton.isEnabled = false
+        binding.submitTrailingStopOrderButton.isEnabled = false
 
     }
 
@@ -156,8 +154,8 @@ class TradeOrderActivity : AppCompatActivity() {
             return
         }
 
-        binding.submitOrderButton.isEnabled = false
-        binding.submitTrailingStopOrderButton.isEnabled = false
+        disableOrderButtonsAndShowLoading()
+
         orderMainType = OrderMainType.NORMAL
 
         Log.d("submitClick", "submit normal order clicked!")
@@ -165,9 +163,6 @@ class TradeOrderActivity : AppCompatActivity() {
         resetAmountError()
 
         lifecycleScope.launch(Dispatchers.Main) {
-
-            binding.pgLoading.visibility = View.VISIBLE
-
             marketViewModel.submitMarketOrder(
                 MarketOrderParamView(
                     marketName = marketAdapter.selectedMarket.name,
@@ -176,41 +171,40 @@ class TradeOrderActivity : AppCompatActivity() {
                     tonce = System.currentTimeMillis()
                 )
             )
-
         }
     }
 
     private fun onTrailingStopButtonClicked() {
-        binding.submitTrailingStopOrderButton.isEnabled = false
-        binding.submitOrderButton.isEnabled = false
-        orderMainType = OrderMainType.TSL
+        orderMainType = OrderMainType.TRAILING_STOP_LOSS
 
         Log.d("submitClick", "submit trailing stop loss order clicked!")
 
         resetAmountError()
 
-        lifecycleScope.launch(Dispatchers.Main) {
-
-            binding.pgLoading.visibility = View.VISIBLE
-
-            marketViewModel.submitMarketOrder(
-                MarketOrderParamView(
-                    marketName = marketAdapter.selectedMarket.name,
-                    orderType = binding.typeDropDown.selectedItem.toString(),
-                    selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
-                    tonce = System.currentTimeMillis()
-                )
-            )
-
+        try {
+            startTrailingStopService(binding.tvStopPercent.text.toString().toDouble())
+        } catch (e: java.lang.NumberFormatException) {
+            showSnackBar("Stop percent is wrong. Enter a number in [0-100] range.")
+            e.printStackTrace()
+        } catch (e: Exception) {
+            showSnackBar("Unknown exception occurred. try again!")
+            e.printStackTrace()
         }
+
     }
 
-    private fun startTSL() {
-        if (!isServiceRunning(this@TradeOrderActivity, TrailingStopService::class.java)) {
-            val intent = Intent(applicationContext, TrailingStopService::class.java)
+    private fun startTrailingStopService(stopPercent: Double) {
+        val intent = Intent(applicationContext, TrailingStopService::class.java)
+        if (
+            marketAdapter.isSelectedMarketInitialized() &&
+            marketAdapter.selectedMarket.name.isNotBlank()
+        ) {
             intent.putExtra(MARKET_NAME_PARAM, marketAdapter.selectedMarket.name)
+            intent.putExtra(MARKET_STOP_PERCENT_PARAM, stopPercent)
             startService(intent)
             Log.d("trailingStopStrategy", "service started")
+        } else {
+            showSnackBar("select a market!")
         }
     }
 

@@ -97,6 +97,10 @@ class TrailingStopService : LifecycleService() {
         lifecycleScope.launch {
             marketsInfoStateFlow.collect { newMarketWithTick ->
 
+                // TODO: request for user account balance for the market
+                //  and cancel trailing stop loss if the balance is insufficient
+                //  for that specific market
+
                 if (newMarketWithTick == null) return@collect
                 if (marketModels[newMarketWithTick.first] == null) return@collect
 
@@ -110,7 +114,13 @@ class TrailingStopService : LifecycleService() {
                     val marketStatistics = newMarketWithTick.second.data.tickerDetails
                     val buyValue = marketStatistics.buy?.toDouble() ?: -1.0
 
+                    // <editor-fold desc="Log Ticker">
+
                     Log.d(TAG, "new ticker: $newMarketWithTick")
+
+                    //</editor-fold>
+
+                    // <editor-fold desc="Log Comparing To Previous Seen Price">
                     Log.d(
                         TAG,
                         "${
@@ -129,73 +139,90 @@ class TrailingStopService : LifecycleService() {
                             }
                         } -> newBuyPrice: $buyValue, LastSeenPrice: $currentMarketModel.lastSeenPrice, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
                     )
+                    //</editor-fold>
 
                     when {
 
                         buyValue > currentMarketModel.maxSeenPrice -> {
                             isMaxUpdateNeeded = true
+                            // <editor-fold desc="Log GoingUpperThanMax">
                             Log.d(
                                 TAG,
                                 "GoingUpperThanMax ↑ NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
                             )
+                            //</editor-fold>
                         }
 
                         buyValue < currentMarketModel.maxSeenPrice * (1 - currentMarketModel.stopPercent) -> {
+                            // <editor-fold desc="Log Stopped Trailing Stop Loss">
                             Log.d(
                                 TAG,
                                 "stopped! -> NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
                             )
+                            //</editor-fold>
                             lifecycleScope.launch(Dispatchers.IO) {
 
                                 val balanceResponse = accountDataSource.getBalanceInfo().data
 
                                 if (balanceResponse != null) {
 
-                                    val balanceInfo =
+                                    val balanceInfo: MarketBalanceInfo? =
                                         readInstanceProperty<MarketBalanceInfo, BalanceInfo>(
                                             balanceResponse,
                                             extractCurrentMarketName(newMarketWithTick.first)
                                         )
 
+                                    // <editor-fold desc="Log BalanceInfo">
                                     Log.d(TAG, "BalanceInfoResult: $balanceInfo")
+                                    //</editor-fold>
 
-                                    val marketOrderResult = marketRepository.putMarketOrder(
-                                        MarketOrderParamView(
-                                            marketName = newMarketWithTick.first,
-                                            orderType = ORDER_TYPE_SELL,
-                                            selectedMarketOrderAmount = balanceInfo.available.toDouble(),
-                                            tonce = System.currentTimeMillis()
+                                    if(balanceInfo?.available != null) {
+                                        val marketOrderResult = marketRepository.putMarketOrder(
+                                            MarketOrderParamView(
+                                                marketName = newMarketWithTick.first,
+                                                orderType = ORDER_TYPE_SELL,
+                                                selectedMarketOrderAmount = balanceInfo.available.toDouble(),
+                                                tonce = System.currentTimeMillis()
+                                            )
                                         )
-                                    )
 
-                                    if (marketOrderResult.isSuccessful()) {
+                                        if (marketOrderResult.isSuccessful()) {
+                                            // TODO: just cancel job when all orders are hit by stop
+                                            getMarketInfoJob.cancel(
+                                                "COMPLETED THE TRAILING STOP LOSS FOR ${newMarketWithTick.first}",
+                                                Throwable()
+                                            )
+                                        }
 
-                                        getMarketInfoJob.cancel(
-                                            "COMPLETED THE TRAILING STOP LOSS FOR ${newMarketWithTick.first}",
-                                            Throwable()
-                                        )
+                                        Log.d(TAG, "MarketOrderResult: $marketOrderResult")
+                                    } else {
+                                        Log.d(TAG, "Balance is inssuficient! BalanceResponse: $balanceResponse")
                                     }
-
-                                    Log.d(TAG, "MarketOrderResult: $marketOrderResult")
 
                                 }
 
                             }
-//
+
+                            marketModels.remove(newMarketWithTick.first)
+
                         }
 
                         buyValue == currentMarketModel.maxSeenPrice -> {
+                            // <editor-fold desc="Log GoingStableWithMax">
                             Log.d(
                                 TAG,
                                 "GoingStableWithMax → NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice}"
                             )
+                            //</editor-fold>
                         }
 
                         else -> {
+                            // <editor-fold desc="Log GoingDownerThanMax">
                             Log.d(
                                 TAG,
                                 "GoingDownerThanMax ↑ NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
                             )
+                            //</editor-fold>
                         }
 
                     }

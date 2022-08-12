@@ -7,7 +7,7 @@ import com.safari.traderbot.network.CoinexStatusCode
 import kotlin.reflect.KProperty1
 
 @Suppress("UNCHECKED_CAST")
-inline fun <R, reified T> readInstanceProperty(instance: T, propertyName: String): R {
+inline fun <R, reified T> readInstanceProperty(instance: T, propertyName: String): R? {
 
 /*    T::class.members.map {
         println(it.name)
@@ -18,7 +18,7 @@ inline fun <R, reified T> readInstanceProperty(instance: T, propertyName: String
         .first { it.name == propertyName } as KProperty1<T, *>
     // force a invalid cast exception if incorrect type here
 
-    return property.get(instance) as R
+    return property.get(instance) as R?
 }
 
 
@@ -32,5 +32,5 @@ fun main() {
     )
     val currentMarketName = "DOGE"
     val property = readInstanceProperty<MarketBalanceInfo, BalanceInfo>(balanceInfo, currentMarketName)
-    print(property.available.toDouble())
+    print(property?.available?.toDouble())
 }

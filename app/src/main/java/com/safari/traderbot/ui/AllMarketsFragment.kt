@@ -1,5 +1,6 @@
 package com.safari.traderbot.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -70,6 +71,13 @@ class AllMarketsFragment : Fragment() {
 
         marketListViewModel.searchResultLiveData.observe(viewLifecycleOwner) {
             marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
+        }
+
+        marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { market ->
+            val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
+                putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+            }
+            startActivity(tradeOrderActivityIntent)
         }
 
         marketListViewModel.snackBarLiveData.observe(viewLifecycleOwner) {

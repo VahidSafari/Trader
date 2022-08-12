@@ -12,7 +12,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mainActivityBinding: ActivityMainBinding;
+    private lateinit var mainActivityBinding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,10 +25,6 @@ class MainActivity : AppCompatActivity() {
 
         mainActivityBinding.accountDetailButton.setOnClickListener {
             startActivity(Intent(this, AccountDetailActivity::class.java))
-        }
-
-        mainActivityBinding.tradeOrderButton.setOnClickListener {
-            startActivity(Intent(this, TradeOrderActivity::class.java))
         }
 
     }

@@ -20,11 +20,4 @@
         android:layout_height="wrap_content"
         android:text="اطلاعات اکانت"/>
 
-
-    <Button
-        android:id="@+id/trade_order_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="درخواست خرید"/>
-
 </LinearLayout>

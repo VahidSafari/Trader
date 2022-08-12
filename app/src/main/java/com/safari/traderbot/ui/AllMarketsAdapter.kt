@@ -38,12 +38,12 @@ class AllMarketsAdapter(val viewModel: MarketViewModel) :
         }
 
         fun setOnClickListeners() {
+            binding.root.setOnClickListener { viewModel.openTradePage(marketModel.marketName) }
             binding.ivAllMarketFavourite.setOnClickListener {
                 viewModel.toggleFavouriteStatus(marketModel)
                 viewModel.getMarketsLivedata()
             }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AllMarketsViewHolder {

@@ -39,6 +39,7 @@ class MarketViewModel @Inject constructor(
     val searchPhraseLiveData = MutableLiveData<String>()
     val snackBarLiveData = MutableLiveData<String>()
     val updateAmountErrorTriggerLiveData = MutableLiveData<Any>()
+    val openTradePageTriggerLiveData = MutableLiveData<String>()
     var fetchingMarketDataJob: Job? = null
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
@@ -161,6 +162,10 @@ class MarketViewModel @Inject constructor(
 
     fun stopFetchingMarketData(message: String) {
         fetchingMarketDataJob?.cancel(CancellationException(message))
+    }
+
+    fun openTradePage(marketName: String) {
+        openTradePageTriggerLiveData.postValue(marketName)
     }
 
 }

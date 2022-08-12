@@ -39,6 +39,7 @@ class FavouriteAdapter(private val marketListViewModel: MarketViewModel) :
         }
 
         fun setOnClickListeners() {
+            binding.root.setOnClickListener { marketListViewModel.openTradePage(marketModel.marketName) }
             binding.ivFavouriteToggler.setOnClickListener {
                 marketListViewModel.toggleFavouriteStatus(marketModel)
             }

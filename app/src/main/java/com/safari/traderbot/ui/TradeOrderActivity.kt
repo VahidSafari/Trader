@@ -29,6 +29,10 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class TradeOrderActivity : AppCompatActivity() {
 
+    companion object {
+        const val MARKET_NAME_PARAM = "TradeOrderActivityMarketNameParam"
+    }
+
     private lateinit var binding: ActivityTradeOrderBinding
 
     private lateinit var marketAdapter: MarketAdapter

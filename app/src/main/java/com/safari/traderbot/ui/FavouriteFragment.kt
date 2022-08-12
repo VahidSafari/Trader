@@ -1,5 +1,6 @@
 package com.safari.traderbot.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -49,6 +50,13 @@ class FavouriteFragment : Fragment() {
                 )
             })
             Log.d("favouriteUpdate", newMarketList.toString())
+        }
+
+        marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { market ->
+            val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
+                putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+            }
+            startActivity(tradeOrderActivityIntent)
         }
 
         marketListViewModel.startFetchingPriceUpdateOfFavouriteMarkets()

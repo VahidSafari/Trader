@@ -7,7 +7,9 @@ import com.safari.traderbot.utils.MD5Util;
 import org.apache.http.HttpException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -95,6 +97,13 @@ public class StockApi {
                 default:
                     return UNSUPPORTED;
             }
+        }
+
+        public static List<String> getStringList() {
+            List<String> stringList = new ArrayList<>();
+            stringList.add(ORDER_TYPE_BUY.typeName);
+            stringList.add(ORDER_TYPE_SELL.typeName);
+            return stringList;
         }
 
     }

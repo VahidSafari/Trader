@@ -6,10 +6,11 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
+import androidx.annotation.StringDef
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
@@ -20,7 +21,6 @@ import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
-import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_NAME_PARAM
 import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_STOP_PERCENT_PARAM
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -35,36 +35,39 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityTradeOrderBinding
 
-    private lateinit var marketAdapter: MarketAdapter
-
     private val marketViewModel: MarketViewModel by viewModels()
 
-    private enum class OrderMainType {
-        NORMAL,
-        TRAILING_STOP_LOSS
+    private enum class OrderMainType(val value: String) {
+        MARKET("Market"),
+        TRAILING_STOP_LOSS("Trailing Stop Loss");
+
+        companion object {
+            fun getStringList() = listOf(MARKET.value, TRAILING_STOP_LOSS.value)
+        }
+
     }
 
     private lateinit var orderMainType: OrderMainType
 
+    private lateinit var marketName: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        marketName = intent.getStringExtra(MARKET_NAME_PARAM)!!
 
-        binding = ActivityTradeOrderBinding.inflate(layoutInflater)
+        binding = ActivityTradeOrderBinding.inflate(layoutInflater).apply {
+            this.marketName = this@TradeOrderActivity.marketName
+        }
         setContentView(binding.root)
 
         initTypeDropDown()
-
-        initMarketRecyclerView()
+        initTradeTypeDropDown()
 
         setListeners()
 
         marketViewModel.minAmount.observe(this, ::onMinAmountChanged)
 
         marketViewModel.snackBarLiveData.observe(this, ::showSnackBar)
-
-        marketViewModel.marketsLiveData.observe(this, marketAdapter::submitList)
-
-        marketViewModel.searchResultLiveData.observe(this, marketAdapter::submitList)
 
         marketViewModel.marketOrderResult.observe(this, ::onNewMarketResponseReceived)
 
@@ -74,18 +77,58 @@ class TradeOrderActivity : AppCompatActivity() {
 
     }
 
+    private fun initTradeTypeDropDown() {
+        binding.tradeTypeDropDown.adapter = ArrayAdapter(
+            this,
+            R.layout.item_spinner,
+            OrderMainType.getStringList()
+        )
+        binding.tradeTypeDropDown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                when(parent?.getItemAtPosition(position).toString()) {
+                    OrderMainType.MARKET.name -> {
+                        showMarketOrderViews()
+                    }
+                    OrderMainType.TRAILING_STOP_LOSS.name -> {
+                        showTrailingStopLossViews()
+                    }
+
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+    }
+
+    private fun showTrailingStopLossViews() {
+        binding.typeDropDown.visibility = View.GONE
+        binding.tilAmount.visibility = View.GONE
+        binding.submitOrderButton.visibility = View.GONE
+
+        binding.tilStopPercent.visibility = View.VISIBLE
+        binding.submitTrailingStopOrderButton.visibility = View.VISIBLE
+    }
+
+    private fun showMarketOrderViews() {
+        binding.tilStopPercent.visibility = View.GONE
+        binding.submitTrailingStopOrderButton.visibility = View.GONE
+
+        binding.typeDropDown.visibility = View.VISIBLE
+        binding.tilAmount.visibility = View.VISIBLE
+        binding.submitOrderButton.visibility = View.VISIBLE
+    }
+
     private fun initTypeDropDown() {
         binding.typeDropDown.adapter = ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_dropdown_item,
-            StockApi.ORDER_TYPE.values()
+            R.layout.item_spinner,
+            StockApi.ORDER_TYPE.getStringList()
         )
-    }
-
-    private fun initMarketRecyclerView() {
-        marketAdapter = MarketAdapter(marketViewModel)
-        binding.rvMarkets.adapter = marketAdapter
-
     }
 
     private fun onMinAmountChanged(minAmount: Double) {
@@ -97,7 +140,6 @@ class TradeOrderActivity : AppCompatActivity() {
     private fun setListeners() {
         binding.submitOrderButton.setOnClickListener { onSubmitOrderClicked() }
         binding.submitTrailingStopOrderButton.setOnClickListener { onTrailingStopButtonClicked() }
-        setSearchListeners()
         setAmountListener()
     }
 
@@ -153,14 +195,9 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private fun onSubmitOrderClicked() {
 
-        if (!marketAdapter.isSelectedMarketInitialized()) {
-            showSnackBar("please select a market")
-            return
-        }
-
         disableOrderButtonsAndShowLoading()
 
-        orderMainType = OrderMainType.NORMAL
+        orderMainType = OrderMainType.MARKET
 
         Log.d("submitClick", "submit normal order clicked!")
 
@@ -169,7 +206,7 @@ class TradeOrderActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             marketViewModel.submitMarketOrder(
                 MarketOrderParamView(
-                    marketName = marketAdapter.selectedMarket.name,
+                    marketName = marketName,
                     orderType = binding.typeDropDown.selectedItem.toString(),
                     selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
                     tonce = System.currentTimeMillis()
@@ -199,17 +236,10 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private fun startTrailingStopService(stopPercent: Double) {
         val intent = Intent(applicationContext, TrailingStopService::class.java)
-        if (
-            marketAdapter.isSelectedMarketInitialized() &&
-            marketAdapter.selectedMarket.name.isNotBlank()
-        ) {
-            intent.putExtra(MARKET_NAME_PARAM, marketAdapter.selectedMarket.name)
-            intent.putExtra(MARKET_STOP_PERCENT_PARAM, stopPercent)
-            startService(intent)
-            Log.d("trailingStopStrategy", "service started")
-        } else {
-            showSnackBar("select a market!")
-        }
+        intent.putExtra(MARKET_NAME_PARAM, marketName)
+        intent.putExtra(MARKET_STOP_PERCENT_PARAM, stopPercent)
+        startService(intent)
+        Log.d("trailingStopStrategy", "service started")
     }
 
     private fun setAmountListener() {
@@ -256,26 +286,6 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private fun resetAmountError() {
         binding.tilAmount.isErrorEnabled = false
-    }
-
-    private fun setSearchListeners() {
-        binding.svMarket.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(searchPhrase: String?): Boolean {
-                marketViewModel.searchPhraseLiveData.value = searchPhrase
-                return false
-            }
-
-            override fun onQueryTextChange(searchPhrase: String?): Boolean {
-                marketViewModel.searchPhraseLiveData.value = searchPhrase
-                Log.d("searchresult", "searched for $searchPhrase ")
-                return false
-            }
-        })
-
-        binding.svMarket.setOnCloseListener {
-            marketViewModel.searchPhraseLiveData.value = MarketViewModel.GET_ALL_MARKETS_PHRASE
-            return@setOnCloseListener false
-        }
     }
 
 }

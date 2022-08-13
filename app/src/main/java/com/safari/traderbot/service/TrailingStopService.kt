@@ -1,6 +1,7 @@
 package com.safari.traderbot.service
 
 import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
@@ -18,9 +19,10 @@ import com.safari.traderbot.model.balanceinfo.BalanceInfo
 import com.safari.traderbot.model.balanceinfo.MarketBalanceInfo
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
-import com.safari.traderbot.ui.MainActivity
+import com.safari.traderbot.ui.CoinListActivity
 import com.safari.traderbot.utils.readInstanceProperty
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.internal.Contexts.getApplication
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -42,6 +44,17 @@ class TrailingStopService : LifecycleService() {
             "BTC",
             "BCH"
         )
+
+        private lateinit var trailingStopViewModel: TrailingStopViewModel
+
+        fun getTrailingStopViewModel(application: Application): TrailingStopViewModel {
+            if (!::trailingStopViewModel.isInitialized) {
+                trailingStopViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application).create(
+                    TrailingStopViewModel::class.java
+                )
+            }
+            return trailingStopViewModel
+        }
 
     }
 
@@ -248,7 +261,7 @@ class TrailingStopService : LifecycleService() {
     private fun showForegroundNotification(contentText: String) {
         // Create intent that will bring our app to the front, as if it was tapped in the app
         // launcher
-        val showTaskIntent = Intent(applicationContext, MainActivity::class.java)
+        val showTaskIntent = Intent(applicationContext, CoinListActivity::class.java)
         showTaskIntent.action = Intent.ACTION_MAIN
         showTaskIntent.addCategory(Intent.CATEGORY_LAUNCHER)
         showTaskIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

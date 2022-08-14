@@ -1,7 +1,6 @@
 package com.safari.traderbot.service
 
 import android.app.*
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
@@ -22,7 +21,6 @@ import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsRespons
 import com.safari.traderbot.ui.CoinListActivity
 import com.safari.traderbot.utils.readInstanceProperty
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.internal.Contexts.getApplication
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -58,8 +56,6 @@ class TrailingStopService : LifecycleService() {
 
     }
 
-    private val marketModels = mutableMapOf<String, MarketTrailingStopModel>()
-
     @Inject
     lateinit var marketRepository: MarketRepository
 
@@ -86,10 +82,12 @@ class TrailingStopService : LifecycleService() {
         val marketNameParam = bundle?.getString(MARKET_NAME_PARAM)
         val stopPercentParam = bundle?.getDouble(MARKET_STOP_PERCENT_PARAM)
         if (marketNameParam != null && stopPercentParam != null) {
-            if (marketModels.containsKey(marketNameParam)) {
-                marketModels[marketNameParam] = marketModels[marketNameParam]!!.copy(stopPercent = stopPercentParam)
+            if (getTrailingStopViewModel(application).runningTSLs.value?.containsKey(marketNameParam) == true) {
+                val newMarketModel = getTrailingStopViewModel(application).runningTSLs.value!![marketNameParam]!!.copy(stopPercent = stopPercentParam)
+                getTrailingStopViewModel(application).updateSingleTrailingStopModel(marketNameParam, newMarketModel)
             } else {
-                marketModels[marketNameParam] = MarketTrailingStopModel(stopPercentParam, -1.0, -1.0)
+                val newMarketModel = MarketTrailingStopModel(stopPercentParam, -1.0, -1.0)
+                getTrailingStopViewModel(application).updateSingleTrailingStopModel(marketNameParam, newMarketModel)
             }
         }
     }
@@ -114,10 +112,12 @@ class TrailingStopService : LifecycleService() {
                 //  and cancel trailing stop loss if the balance is insufficient
                 //  for that specific market
 
-                if (newMarketWithTick == null) return@collect
-                if (marketModels[newMarketWithTick.first] == null) return@collect
+                val marketTrailingStopModels = getTrailingStopViewModel(application).runningTSLs.value!!
 
-                val currentMarketModel = marketModels[newMarketWithTick.first]!!
+                if (newMarketWithTick == null) return@collect
+                if (marketTrailingStopModels[newMarketWithTick.first] == null) return@collect
+
+                val currentMarketModel = marketTrailingStopModels[newMarketWithTick.first]!!
 
                 isMaxUpdateNeeded = false
 
@@ -216,7 +216,7 @@ class TrailingStopService : LifecycleService() {
 
                             }
 
-                            marketModels.remove(newMarketWithTick.first)
+                            getTrailingStopViewModel(application).removeSingleTrailingStopModel(newMarketWithTick.first)
 
                         }
 
@@ -240,10 +240,16 @@ class TrailingStopService : LifecycleService() {
 
                     }
 
-                    marketModels[newMarketWithTick.first] = currentMarketModel.copy(lastSeenPrice = buyValue)
+                    getTrailingStopViewModel(application).updateSingleTrailingStopModel(
+                        newMarketWithTick.first,
+                        currentMarketModel.copy(lastSeenPrice = buyValue)
+                    )
 
                     if (isMaxUpdateNeeded) {
-                        marketModels[newMarketWithTick.first] = currentMarketModel.copy(maxSeenPrice = buyValue)
+                        getTrailingStopViewModel(application).updateSingleTrailingStopModel(
+                            newMarketWithTick.first,
+                            currentMarketModel.copy(maxSeenPrice = buyValue)
+                        )
                     }
 
                     Log.d(
@@ -304,7 +310,7 @@ class TrailingStopService : LifecycleService() {
     private fun getMarketInfoInAnInterval() {
         getMarketInfoJob = lifecycleScope.launch(Dispatchers.IO) {
             while (isActive) {
-                marketModels.forEach { marketWithStopPercent ->
+                getTrailingStopViewModel(application).runningTSLs.value?.forEach { marketWithStopPercent ->
                     try {
                         marketsInfoStateFlow.emit(
                             Pair(

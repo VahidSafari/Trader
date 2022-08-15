@@ -86,7 +86,7 @@ class TrailingStopService : LifecycleService() {
                 val newMarketModel = getTrailingStopViewModel(application).runningTSLs.value!![marketNameParam]!!.copy(stopPercent = stopPercentParam)
                 getTrailingStopViewModel(application).updateSingleTrailingStopModel(marketNameParam, newMarketModel)
             } else {
-                val newMarketModel = MarketTrailingStopModel(stopPercentParam, -1.0, -1.0)
+                val newMarketModel = MarketTrailingStopModel(marketNameParam, stopPercentParam, -1.0, -1.0)
                 getTrailingStopViewModel(application).updateSingleTrailingStopModel(marketNameParam, newMarketModel)
             }
         }

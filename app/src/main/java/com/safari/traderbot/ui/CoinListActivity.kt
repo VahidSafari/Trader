@@ -16,6 +16,8 @@ class CoinListActivity : AppCompatActivity() {
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
 
+    private lateinit var favouriteAdapter: FavouriteAdapter
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCoinListBinding.inflate(layoutInflater)
@@ -23,7 +25,12 @@ class CoinListActivity : AppCompatActivity() {
         tabLayoutMediator =
             TabLayoutMediator(binding.tlMarketLists, binding.vpMarketLists) { tab, position ->
                 tab.text =
-                    if (position == 0) getString(R.string.all_markets) else getString(R.string.favourites)
+                    when (position) {
+                        0 -> getString(R.string.all_markets)
+                        1 -> getString(R.string.favourites)
+                        2 -> getString(R.string.trailing_stop_loss)
+                        else -> ""
+                    }
             }
 
         marketListFragmentStateAdapter = MarketListFragmentStateAdapter(
@@ -45,6 +52,5 @@ class CoinListActivity : AppCompatActivity() {
         } else {
             binding.vpMarketLists.currentItem--
         }
-        super.onBackPressed()
     }
 }

@@ -129,7 +129,7 @@ class MarketViewModel @Inject constructor(
             val minAmountInTargetMarket = marketDetail.data?.minAmount?.toDouble()
                 ?.times(selectedMarketOrderTickerValue)
 
-            minAmount.value = minAmountInTargetMarket ?: MIN_AMOUNT_UNINITIALIZED
+            minAmount.postValue(minAmountInTargetMarket ?: MIN_AMOUNT_UNINITIALIZED)
             updateAmountErrorTriggerLiveData.postValue(Any())
         }
     }

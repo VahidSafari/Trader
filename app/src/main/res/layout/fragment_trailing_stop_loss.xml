@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.fragment.TrailingStopLossFragment">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+        <variable
+            name="tslAdapter"
+            type="com.safari.traderbot.ui.adapter.TSLAdapter" />
+    </data>
 
-</FrameLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.fragment.TrailingStopLossFragment">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_tsl_items"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adapter="@{tslAdapter}"
+            tools:listitem="@layout/item_tsl" />
+
+    </FrameLayout>
+</layout>

@@ -79,7 +79,7 @@ class AllMarketsFragment : Fragment() {
         marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { marketEvent ->
             marketEvent.getContentIfNotHandled()?.let { market ->
                 val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
-                    putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+                    putExtra(TradeOrderActivity.TRADE_ORDER_ACTIVITY_MARKET_NAME_PARAM, market)
                 }
                 startActivity(tradeOrderActivityIntent)
             }

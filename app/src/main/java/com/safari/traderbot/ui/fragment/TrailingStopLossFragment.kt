@@ -6,15 +6,39 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.safari.traderbot.R
+import com.safari.traderbot.databinding.FragmentTrailingStopLossBinding
+import com.safari.traderbot.service.TrailingStopService
+import com.safari.traderbot.service.TrailingStopViewModel
+import com.safari.traderbot.ui.adapter.TSLAdapter
 
 class TrailingStopLossFragment : Fragment() {
+
+    private lateinit var tslAdapter: TSLAdapter
+
+    private lateinit var binding: FragmentTrailingStopLossBinding
+
+    private lateinit var tslViewModel: TrailingStopViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_trailing_stop_loss, container, false)
+    ): View {
+        binding = FragmentTrailingStopLossBinding.inflate(inflater).apply {
+            lifecycleOwner = viewLifecycleOwner
+        }
+        return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        activity?.let {
+            tslViewModel = TrailingStopService.getTrailingStopViewModel(it.application)
+            tslAdapter = TSLAdapter()
+            binding.tslAdapter = tslAdapter
+            tslViewModel.runningTSLs.observe(viewLifecycleOwner) { tslMap ->
+                tslAdapter.submitList(tslMap.values.map { tslModel -> tslModel.toTrailingStopLossView() })
+            }
+        }
+
+    }
 }

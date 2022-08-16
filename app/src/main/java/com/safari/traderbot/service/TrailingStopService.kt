@@ -33,8 +33,8 @@ class TrailingStopService : LifecycleService() {
         private const val timeFrameInMilliseconds = 4000L
         private const val TAG = "trailingStopStrategy"
 
-        const val MARKET_NAME_PARAM = "MARKET_NAME_PARAM"
-        const val MARKET_STOP_PERCENT_PARAM = "MARKET_STOP_PERCENT_PARAM"
+        const val TSL_SERVICE_MARKET_NAME_PARAM = "MARKET_NAME_PARAM"
+        const val TSL_SERVICE_MARKET_STOP_PERCENT_PARAM = "MARKET_STOP_PERCENT_PARAM"
 
         val targetMarkets = listOf(
             "USDT",
@@ -79,8 +79,8 @@ class TrailingStopService : LifecycleService() {
     }
 
     private fun extractParamValues(bundle: Bundle?) {
-        val marketNameParam = bundle?.getString(MARKET_NAME_PARAM)
-        val stopPercentParam = bundle?.getDouble(MARKET_STOP_PERCENT_PARAM)
+        val marketNameParam = bundle?.getString(TSL_SERVICE_MARKET_NAME_PARAM)
+        val stopPercentParam = bundle?.getDouble(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM)
         if (marketNameParam != null && stopPercentParam != null) {
             if (getTrailingStopViewModel(application).runningTSLs.value?.containsKey(marketNameParam) == true) {
                 val newMarketModel = getTrailingStopViewModel(application).runningTSLs.value!![marketNameParam]!!.copy(stopPercent = stopPercentParam)

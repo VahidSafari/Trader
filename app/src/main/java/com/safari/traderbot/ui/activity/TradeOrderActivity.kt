@@ -20,7 +20,8 @@ import com.safari.traderbot.model.marketorder.MarketOrderResponse
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
-import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_STOP_PERCENT_PARAM
+import com.safari.traderbot.service.TrailingStopService.Companion.TSL_SERVICE_MARKET_NAME_PARAM
+import com.safari.traderbot.service.TrailingStopService.Companion.TSL_SERVICE_MARKET_STOP_PERCENT_PARAM
 import com.safari.traderbot.ui.viewmodel.MarketViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,7 @@ import kotlinx.coroutines.launch
 class TradeOrderActivity : AppCompatActivity() {
 
     companion object {
-        const val MARKET_NAME_PARAM = "TradeOrderActivityMarketNameParam"
+        const val TRADE_ORDER_ACTIVITY_MARKET_NAME_PARAM = "TradeOrderActivityMarketNameParam"
     }
 
     private lateinit var binding: ActivityTradeOrderBinding
@@ -53,7 +54,7 @@ class TradeOrderActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        marketName = intent.getStringExtra(MARKET_NAME_PARAM)!!
+        marketName = intent.getStringExtra(TRADE_ORDER_ACTIVITY_MARKET_NAME_PARAM)!!
 
         binding = ActivityTradeOrderBinding.inflate(layoutInflater).apply {
             this.marketName = this@TradeOrderActivity.marketName
@@ -149,8 +150,8 @@ class TradeOrderActivity : AppCompatActivity() {
                 CoinexStatusCode.BELOW_THE_MINIMUM_LIMIT_FOR_BUYING_OR_SELLING -> {
                     try {
                         marketViewModel.getMinAmount(
-                            submitResponse.data.market,
-                            submitResponse.data.orderType
+                            binding.tvMarketName.text.toString(),
+                            binding.typeDropDown.selectedItem.toString()
                         )
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -236,8 +237,8 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private fun startTrailingStopService(stopPercent: Double) {
         val intent = Intent(applicationContext, TrailingStopService::class.java)
-        intent.putExtra(MARKET_NAME_PARAM, marketName)
-        intent.putExtra(MARKET_STOP_PERCENT_PARAM, stopPercent)
+        intent.putExtra(TSL_SERVICE_MARKET_NAME_PARAM, marketName)
+        intent.putExtra(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM, stopPercent)
         startService(intent)
         Log.d("trailingStopStrategy", "service started")
     }

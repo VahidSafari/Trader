@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="tslView"
+            type="com.safari.traderbot.model.TrailingStopLossView" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tv_tsl_market_name"
+            style="@style/Theme.TraderBot.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="@{tslView.marketName}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="DOGEBTC" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_tsl_last_seen_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:backgroundTint="@{tslView.lastPriceToMaxSeenPriceRatio > 1.0 ? @color/dark_green : @color/orange}"
+            app:cardCornerRadius="4dp"
+            android:focusable="false"
+            android:clickable="false"
+            android:minWidth="74dp"
+            android:maxWidth="74dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/cv_tsl_last_to_max_price"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:backgroundTint="@color/dark_green">
+
+            <TextView
+                android:id="@+id/tv_tsl_last_seen_price"
+                style="@style/Theme.TraderBot.Text.Price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="@{String.valueOf(tslView.currentPrice)}"
+                tools:text="0.19992" />
+
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_tsl_last_to_max_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:backgroundTint="@{tslView.lastPriceToMaxSeenPriceRatio > 1.0 ? @color/dark_green : @color/orange}"
+            app:cardCornerRadius="4dp"
+            android:focusable="false"
+            android:clickable="false"
+            android:minWidth="74dp"
+            android:maxWidth="74dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:backgroundTint="@color/dark_green">
+
+            <TextView
+                android:id="@+id/tv_tsl_last_to_max_price"
+                style="@style/Theme.TraderBot.Text.Price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="@{String.valueOf(tslView.lastPriceToMaxSeenPriceRatio)}"
+                tools:text="0.19992" />
+
+        </androidx.cardview.widget.CardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

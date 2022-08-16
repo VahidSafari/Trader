@@ -9,6 +9,7 @@ import com.safari.traderbot.ui.adapter.FavouriteAdapter
 import com.safari.traderbot.ui.adapter.MarketListFragmentStateAdapter
 import com.safari.traderbot.ui.fragment.AllMarketsFragment
 import com.safari.traderbot.ui.fragment.FavouriteFragment
+import com.safari.traderbot.ui.fragment.TrailingStopLossFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -41,7 +42,8 @@ class CoinListActivity : AppCompatActivity() {
             this,
             listOf(
                 AllMarketsFragment(),
-                FavouriteFragment()
+                FavouriteFragment(),
+                TrailingStopLossFragment()
             )
         )
         binding.vpMarketLists.adapter = marketListFragmentStateAdapter

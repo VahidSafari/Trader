@@ -91,10 +91,10 @@ class TradeOrderActivity : AppCompatActivity() {
                 id: Long
             ) {
                 when(parent?.getItemAtPosition(position).toString()) {
-                    OrderMainType.MARKET.name -> {
+                    OrderMainType.MARKET.value -> {
                         showMarketOrderViews()
                     }
-                    OrderMainType.TRAILING_STOP_LOSS.name -> {
+                    OrderMainType.TRAILING_STOP_LOSS.value -> {
                         showTrailingStopLossViews()
                     }
 

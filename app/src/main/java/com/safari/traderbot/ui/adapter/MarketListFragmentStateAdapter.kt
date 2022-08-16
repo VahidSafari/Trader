@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity

@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.MediatorLiveData

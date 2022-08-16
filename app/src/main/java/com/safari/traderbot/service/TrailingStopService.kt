@@ -18,7 +18,7 @@ import com.safari.traderbot.model.balanceinfo.BalanceInfo
 import com.safari.traderbot.model.balanceinfo.MarketBalanceInfo
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketstatistics.SingleMarketStatisticsResponse
-import com.safari.traderbot.ui.CoinListActivity
+import com.safari.traderbot.ui.activity.CoinListActivity
 import com.safari.traderbot.utils.readInstanceProperty
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*

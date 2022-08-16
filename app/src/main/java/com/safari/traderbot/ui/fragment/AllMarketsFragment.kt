@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.fragment
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -16,6 +15,10 @@ import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.FragmentAllMarketsBinding
+import com.safari.traderbot.ui.activity.CoinListActivity
+import com.safari.traderbot.ui.viewmodel.MarketViewModel
+import com.safari.traderbot.ui.activity.TradeOrderActivity
+import com.safari.traderbot.ui.adapter.AllMarketsAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.safari.traderbot.databinding.ItemFavouriteMarketBinding
 import com.safari.traderbot.model.FavouriteMarketModel
+import com.safari.traderbot.ui.viewmodel.MarketViewModel
 
 class FavouriteAdapter(private val marketListViewModel: MarketViewModel) :
     ListAdapter<FavouriteMarketModel, FavouriteAdapter.FavouriteViewHolder>(

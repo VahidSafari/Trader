@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.safari.traderbot.databinding.ItemAllMarketMarketBinding
 import com.safari.traderbot.model.AllMarketsMarketModel
+import com.safari.traderbot.ui.viewmodel.MarketViewModel
 
 class AllMarketsAdapter(val viewModel: MarketViewModel) :
     androidx.recyclerview.widget.ListAdapter<AllMarketsMarketModel, AllMarketsAdapter.AllMarketsViewHolder>(

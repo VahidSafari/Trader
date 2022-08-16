@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.fragment
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,6 +11,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.safari.traderbot.databinding.FragmentFavouriteBinding
+import com.safari.traderbot.ui.activity.CoinListActivity
+import com.safari.traderbot.ui.viewmodel.MarketViewModel
+import com.safari.traderbot.ui.activity.TradeOrderActivity
+import com.safari.traderbot.ui.adapter.FavouriteAdapter
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

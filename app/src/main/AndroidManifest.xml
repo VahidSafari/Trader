@@ -19,11 +19,11 @@
             android:exported="true" />
 
         <activity
-            android:name=".ui.TradeOrderActivity"
+            android:name=".ui.activity.TradeOrderActivity"
             android:exported="true"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.CoinListActivity"
+            android:name=".ui.activity.CoinListActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.AccountDetailActivity"
+            android:name=".ui.activity.AccountDetailActivity"
             android:exported="true"
             android:screenOrientation="portrait" />
 

@@ -1,4 +1,4 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
-import androidx.annotation.StringDef
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
@@ -22,6 +21,7 @@ import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
 import com.safari.traderbot.service.TrailingStopService.Companion.MARKET_STOP_PERCENT_PARAM
+import com.safari.traderbot.ui.viewmodel.MarketViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

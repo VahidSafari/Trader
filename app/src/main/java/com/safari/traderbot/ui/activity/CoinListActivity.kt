@@ -1,10 +1,14 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.activity
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import com.safari.traderbot.R
 import com.safari.traderbot.databinding.ActivityCoinListBinding
+import com.safari.traderbot.ui.adapter.FavouriteAdapter
+import com.safari.traderbot.ui.adapter.MarketListFragmentStateAdapter
+import com.safari.traderbot.ui.fragment.AllMarketsFragment
+import com.safari.traderbot.ui.fragment.FavouriteFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

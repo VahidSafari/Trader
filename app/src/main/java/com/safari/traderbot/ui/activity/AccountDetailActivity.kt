@@ -1,13 +1,10 @@
-package com.safari.traderbot.ui
+package com.safari.traderbot.ui.activity
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.safari.traderbot.databinding.ActivityAccountDetailBinding
-import com.safari.traderbot.di.Provider
 import com.safari.traderbot.network.CoinexService
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*

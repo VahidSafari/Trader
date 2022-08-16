@@ -23,6 +23,8 @@ import com.safari.traderbot.utils.readInstanceProperty
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -47,9 +49,10 @@ class TrailingStopService : LifecycleService() {
 
         fun getTrailingStopViewModel(application: Application): TrailingStopViewModel {
             if (!::trailingStopViewModel.isInitialized) {
-                trailingStopViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application).create(
-                    TrailingStopViewModel::class.java
-                )
+                trailingStopViewModel =
+                    ViewModelProvider.AndroidViewModelFactory.getInstance(application).create(
+                        TrailingStopViewModel::class.java
+                    )
             }
             return trailingStopViewModel
         }
@@ -64,7 +67,7 @@ class TrailingStopService : LifecycleService() {
 
     private var isMaxUpdateNeeded = false
 
-    private lateinit var getMarketInfoJob: Job
+    private val mutex = Mutex()
 
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
@@ -83,11 +86,21 @@ class TrailingStopService : LifecycleService() {
         val stopPercentParam = bundle?.getDouble(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM)
         if (marketNameParam != null && stopPercentParam != null) {
             if (getTrailingStopViewModel(application).runningTSLs.value?.containsKey(marketNameParam) == true) {
-                val newMarketModel = getTrailingStopViewModel(application).runningTSLs.value!![marketNameParam]!!.copy(stopPercent = stopPercentParam)
-                getTrailingStopViewModel(application).updateSingleTrailingStopModel(marketNameParam, newMarketModel)
+                val newMarketModel =
+                    getTrailingStopViewModel(application).runningTSLs.value!![marketNameParam]!!.copy(
+                        stopPercent = stopPercentParam
+                    )
+                getTrailingStopViewModel(application).updateSingleTrailingStopModel(
+                    marketNameParam,
+                    newMarketModel
+                )
             } else {
-                val newMarketModel = MarketTrailingStopModel(marketNameParam, stopPercentParam, -1.0, -1.0)
-                getTrailingStopViewModel(application).updateSingleTrailingStopModel(marketNameParam, newMarketModel)
+                val newMarketModel =
+                    MarketTrailingStopModel(marketNameParam, stopPercentParam, -1.0, -1.0)
+                getTrailingStopViewModel(application).updateSingleTrailingStopModel(
+                    marketNameParam,
+                    newMarketModel
+                )
             }
         }
     }
@@ -112,7 +125,8 @@ class TrailingStopService : LifecycleService() {
                 //  and cancel trailing stop loss if the balance is insufficient
                 //  for that specific market
 
-                val marketTrailingStopModels = getTrailingStopViewModel(application).runningTSLs.value!!
+                val marketTrailingStopModels =
+                    getTrailingStopViewModel(application).runningTSLs.value!!
 
                 if (newMarketWithTick == null) return@collect
                 if (marketTrailingStopModels[newMarketWithTick.first] == null) return@collect
@@ -161,7 +175,9 @@ class TrailingStopService : LifecycleService() {
                             // <editor-fold desc="Log GoingUpperThanMax">
                             Log.d(
                                 TAG,
-                                "GoingUpperThanMax ↑ NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
+                                "GoingUpperThanMax ↑ NewBuyPrice: $buyValue, MaxSeenPrice: ${
+                                    currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()
+                                }, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
                             )
                             //</editor-fold>
                         }
@@ -170,7 +186,9 @@ class TrailingStopService : LifecycleService() {
                             // <editor-fold desc="Log Stopped Trailing Stop Loss">
                             Log.d(
                                 TAG,
-                                "stopped! -> NewBuyPrice: $buyValue, MaxSeenPrice: ${currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()}, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
+                                "stopped! -> NewBuyPrice: $buyValue, MaxSeenPrice: ${
+                                    currentMarketModel.maxSeenPrice.toBigDecimal().toPlainString()
+                                }, Ratio: ${buyValue / currentMarketModel.maxSeenPrice}"
                             )
                             //</editor-fold>
                             lifecycleScope.launch(Dispatchers.IO) {
@@ -189,7 +207,7 @@ class TrailingStopService : LifecycleService() {
                                     Log.d(TAG, "BalanceInfoResult: $balanceInfo")
                                     //</editor-fold>
 
-                                    if(balanceInfo?.available != null) {
+                                    if (balanceInfo?.available != null) {
                                         val marketOrderResult = marketRepository.putMarketOrder(
                                             MarketOrderParamView(
                                                 marketName = newMarketWithTick.first,
@@ -201,22 +219,23 @@ class TrailingStopService : LifecycleService() {
 
                                         if (marketOrderResult.isSuccessful()) {
                                             // TODO: just cancel job when all orders are hit by stop
-                                            getMarketInfoJob.cancel(
-                                                "COMPLETED THE TRAILING STOP LOSS FOR ${newMarketWithTick.first}",
-                                                Throwable()
-                                            )
                                         }
 
                                         Log.d(TAG, "MarketOrderResult: $marketOrderResult")
                                     } else {
-                                        Log.d(TAG, "Balance is inssuficient! BalanceResponse: $balanceResponse")
+                                        Log.d(
+                                            TAG,
+                                            "Balance is inssuficient! BalanceResponse: $balanceResponse"
+                                        )
                                     }
 
                                 }
 
                             }
 
-                            getTrailingStopViewModel(application).removeSingleTrailingStopModel(newMarketWithTick.first)
+                            getTrailingStopViewModel(application).removeSingleTrailingStopModel(
+                                newMarketWithTick.first
+                            )
 
                         }
 
@@ -308,20 +327,22 @@ class TrailingStopService : LifecycleService() {
         MutableStateFlow(null)
 
     private fun getMarketInfoInAnInterval() {
-        getMarketInfoJob = lifecycleScope.launch(Dispatchers.IO) {
-            while (isActive) {
-                getTrailingStopViewModel(application).runningTSLs.value?.forEach { marketWithStopPercent ->
-                    try {
-                        marketsInfoStateFlow.emit(
-                            Pair(
-                                marketWithStopPercent.key,
-                                marketRepository.getSingleMarketStatistics(marketWithStopPercent.key)
+        lifecycleScope.launch(Dispatchers.IO) {
+            mutex.withLock {
+                while (isActive) {
+                    getTrailingStopViewModel(application).runningTSLs.value?.forEach { marketWithStopPercent ->
+                        try {
+                            marketsInfoStateFlow.emit(
+                                Pair(
+                                    marketWithStopPercent.key,
+                                    marketRepository.getSingleMarketStatistics(marketWithStopPercent.key)
+                                )
                             )
-                        )
-                    } catch (e: Exception) {
-                        throw e
-                    } finally {
-                        delay(timeFrameInMilliseconds)
+                        } catch (e: Exception) {
+                            throw e
+                        } finally {
+                            delay(timeFrameInMilliseconds)
+                        }
                     }
                 }
             }

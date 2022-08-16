@@ -24,7 +24,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -44,6 +43,13 @@ class TrailingStopService : LifecycleService() {
             "BTC",
             "BCH"
         )
+
+        fun extractCurrentMarketName(marketAndTargetMarket: String): String {
+            val targetMarketName: String = targetMarkets.first {
+                marketAndTargetMarket.endsWith(it)
+            }
+            return marketAndTargetMarket.dropLast(targetMarketName.length)
+        }
 
         private lateinit var trailingStopViewModel: TrailingStopViewModel
 
@@ -103,13 +109,7 @@ class TrailingStopService : LifecycleService() {
                 )
             }
         }
-    }
-
-    private fun extractCurrentMarketName(marketAndTargetMarket: String): String {
-        val targetMarketName: String = targetMarkets.first {
-            marketAndTargetMarket.endsWith(it)
-        }
-        return marketAndTargetMarket.dropLast(targetMarketName.length)
+        getTrailingStopViewModel(application).marketsToRemove.remove(marketNameParam)
     }
 
     override fun onCreate() {
@@ -237,6 +237,8 @@ class TrailingStopService : LifecycleService() {
                                 newMarketWithTick.first
                             )
 
+                            getTrailingStopViewModel(application).marketsToRemove.add(newMarketWithTick.first)
+
                         }
 
                         buyValue == currentMarketModel.maxSeenPrice -> {
@@ -259,10 +261,12 @@ class TrailingStopService : LifecycleService() {
 
                     }
 
-                    getTrailingStopViewModel(application).updateSingleTrailingStopModel(
-                        newMarketWithTick.first,
-                        currentMarketModel.copy(lastSeenPrice = buyValue)
-                    )
+                    if (!getTrailingStopViewModel(application).marketsToRemove.contains(newMarketWithTick.first)) {
+                        getTrailingStopViewModel(application).updateSingleTrailingStopModel(
+                            newMarketWithTick.first,
+                            currentMarketModel.copy(lastSeenPrice = buyValue)
+                        )
+                    }
 
                     if (isMaxUpdateNeeded) {
                         getTrailingStopViewModel(application).updateSingleTrailingStopModel(
@@ -328,7 +332,7 @@ class TrailingStopService : LifecycleService() {
 
     private fun getMarketInfoInAnInterval() {
         lifecycleScope.launch(Dispatchers.IO) {
-            mutex.withLock {
+            try {
                 while (isActive) {
                     getTrailingStopViewModel(application).runningTSLs.value?.forEach { marketWithStopPercent ->
                         try {
@@ -345,6 +349,8 @@ class TrailingStopService : LifecycleService() {
                         }
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

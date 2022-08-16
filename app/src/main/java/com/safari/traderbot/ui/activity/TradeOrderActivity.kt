@@ -13,19 +13,28 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.safari.traderbot.R
+import com.safari.traderbot.data.AccountDataSource
+import com.safari.traderbot.data.MarketRepository
 import com.safari.traderbot.databinding.ActivityTradeOrderBinding
 import com.safari.traderbot.model.GenericResponse
+import com.safari.traderbot.model.balanceinfo.BalanceInfo
+import com.safari.traderbot.model.balanceinfo.MarketBalanceInfo
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.network.CoinexService
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
 import com.safari.traderbot.service.TrailingStopService.Companion.TSL_SERVICE_MARKET_NAME_PARAM
 import com.safari.traderbot.service.TrailingStopService.Companion.TSL_SERVICE_MARKET_STOP_PERCENT_PARAM
+import com.safari.traderbot.service.TrailingStopService.Companion.extractCurrentMarketName
 import com.safari.traderbot.ui.viewmodel.MarketViewModel
+import com.safari.traderbot.utils.readInstanceProperty
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TradeOrderActivity : AppCompatActivity() {
@@ -37,6 +46,12 @@ class TradeOrderActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTradeOrderBinding
 
     private val marketViewModel: MarketViewModel by viewModels()
+
+    @Inject
+    lateinit var accountDataSource: AccountDataSource
+
+    @Inject
+    lateinit var marketRepository: MarketRepository
 
     private enum class OrderMainType(val value: String) {
         MARKET("Market"),
@@ -224,7 +239,26 @@ class TradeOrderActivity : AppCompatActivity() {
         resetAmountError()
 
         try {
-            startTrailingStopService(binding.tvStopPercent.text.toString().toDouble())
+            lifecycleScope.launch(Dispatchers.IO) {
+
+                val balanceResponse = accountDataSource.getBalanceInfo().data
+
+                    val balanceInfo: MarketBalanceInfo? =
+                        readInstanceProperty<MarketBalanceInfo, BalanceInfo>(
+                            balanceResponse!!,
+                            extractCurrentMarketName(binding.marketName!!)
+                        )
+
+                val singleMarketStatistics = marketRepository.getSingleMarketStatistics(marketName)
+
+                if (balanceInfo!!.available.toDouble() >= singleMarketStatistics.data.tickerDetails.buy!!.toDouble()) {
+                    startTrailingStopService(binding.tvStopPercent.text.toString().toDouble())
+                } else {
+                    showSnackBar("not enough balance! required: ${singleMarketStatistics.data.tickerDetails.buy!!}")
+                }
+
+            }
+
         } catch (e: java.lang.NumberFormatException) {
             showSnackBar("Stop percent is wrong. Enter a number in [0-100] range.")
             e.printStackTrace()

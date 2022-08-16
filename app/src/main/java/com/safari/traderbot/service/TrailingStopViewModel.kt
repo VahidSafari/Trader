@@ -11,6 +11,8 @@ class TrailingStopViewModel @Inject constructor(): ViewModel() {
     // default value is used to prevent null pointer crashes
     val runningTSLs = MutableLiveData<MutableMap<String, MarketTrailingStopModel>>(mutableMapOf())
 
+    val marketsToRemove = mutableListOf<String>()
+
     fun updateSingleTrailingStopModel(
         marketName: String,
         newMarketTrailingStopModel: MarketTrailingStopModel

@@ -134,6 +134,10 @@ class MarketViewModel @Inject constructor(
         }
     }
 
+    suspend fun getSingleMarketStatistics(marketName: String) {
+        marketRepository.getSingleMarketStatistics(marketName)
+    }
+
     fun resetMinAmount() {
         minAmount.value = MIN_AMOUNT_UNINITIALIZED
     }

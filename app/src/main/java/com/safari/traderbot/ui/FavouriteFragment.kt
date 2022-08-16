@@ -43,20 +43,23 @@ class FavouriteFragment : Fragment() {
         favouriteAdapter = FavouriteAdapter(marketListViewModel)
         binding.rvMarkets.adapter = favouriteAdapter
 
-        marketListViewModel.favouriteLiveData.observe(this) { newMarketList ->
+        marketListViewModel.favouriteLiveData.observe(viewLifecycleOwner) { newMarketList ->
             favouriteAdapter.submitList(newMarketList.map { market ->
                 market.toFavouriteMarketModel(
-                    favouriteAdapter.currentList.find { it.marketName == market.name }?.price ?: Double.MIN_VALUE < market.price
+                    (favouriteAdapter.currentList.find { it.marketName == market.name }?.price
+                        ?: Double.MIN_VALUE) < market.price
                 )
             })
             Log.d("favouriteUpdate", newMarketList.toString())
         }
 
-        marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { market ->
-            val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
-                putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+        marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { marketEvent ->
+            marketEvent.getContentIfNotHandled()?.let { market ->
+                val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
+                    putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+                }
+                startActivity(tradeOrderActivityIntent)
             }
-            startActivity(tradeOrderActivityIntent)
         }
 
         marketListViewModel.startFetchingPriceUpdateOfFavouriteMarkets()

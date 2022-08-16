@@ -11,6 +11,7 @@ import com.safari.traderbot.model.*
 import com.safari.traderbot.model.market.MarketDetail
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
+import com.safari.traderbot.utils.Event
 import com.safari.traderbot.utils.launchPeriodic
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +40,7 @@ class MarketViewModel @Inject constructor(
     val searchPhraseLiveData = MutableLiveData<String>()
     val snackBarLiveData = MutableLiveData<String>()
     val updateAmountErrorTriggerLiveData = MutableLiveData<Any>()
-    val openTradePageTriggerLiveData = MutableLiveData<String>()
+    val openTradePageTriggerLiveData = MutableLiveData<Event<String>>()
     var fetchingMarketDataJob: Job? = null
 
     var minAmount = MutableLiveData(MIN_AMOUNT_UNINITIALIZED)
@@ -165,7 +166,7 @@ class MarketViewModel @Inject constructor(
     }
 
     fun openTradePage(marketName: String) {
-        openTradePageTriggerLiveData.postValue(marketName)
+        openTradePageTriggerLiveData.postValue(Event(marketName))
     }
 
 }

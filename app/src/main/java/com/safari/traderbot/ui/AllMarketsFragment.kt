@@ -73,11 +73,13 @@ class AllMarketsFragment : Fragment() {
             marketAdapter.submitList(it.map { market -> market.toAllMarketsModel() })
         }
 
-        marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { market ->
-            val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
-                putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+        marketListViewModel.openTradePageTriggerLiveData.observe(viewLifecycleOwner) { marketEvent ->
+            marketEvent.getContentIfNotHandled()?.let { market ->
+                val tradeOrderActivityIntent = Intent(context, TradeOrderActivity::class.java).apply {
+                    putExtra(TradeOrderActivity.MARKET_NAME_PARAM, market)
+                }
+                startActivity(tradeOrderActivityIntent)
             }
-            startActivity(tradeOrderActivityIntent)
         }
 
         marketListViewModel.snackBarLiveData.observe(viewLifecycleOwner) {

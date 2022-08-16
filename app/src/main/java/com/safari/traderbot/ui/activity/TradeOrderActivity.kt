@@ -249,12 +249,14 @@ class TradeOrderActivity : AppCompatActivity() {
                             extractCurrentMarketName(binding.marketName!!)
                         )
 
-                val singleMarketStatistics = marketRepository.getSingleMarketStatistics(marketName)
+                val singleMarketStatistics = marketRepository.getSingleMarketStatistics(marketName).data.tickerDetails.buy
 
-                if (balanceInfo!!.available.toDouble() >= singleMarketStatistics.data.tickerDetails.buy!!.toDouble()) {
+                if (balanceInfo != null &&
+                    singleMarketStatistics != null &&
+                    balanceInfo.available.toDouble() >= singleMarketStatistics.toDouble()) {
                     startTrailingStopService(binding.tvStopPercent.text.toString().toDouble())
                 } else {
-                    showSnackBar("not enough balance! required: ${singleMarketStatistics.data.tickerDetails.buy!!}")
+                    showSnackBar("not enough balance! required: ${singleMarketStatistics!!}")
                 }
 
             }

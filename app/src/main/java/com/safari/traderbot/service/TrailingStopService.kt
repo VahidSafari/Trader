@@ -330,6 +330,7 @@ class TrailingStopService : LifecycleService() {
     private val marketsInfoStateFlow: MutableStateFlow<Pair<String, GenericResponse<SingleMarketStatisticsResponse>>?> =
         MutableStateFlow(null)
 
+    @Synchronized
     private fun getMarketInfoInAnInterval() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {

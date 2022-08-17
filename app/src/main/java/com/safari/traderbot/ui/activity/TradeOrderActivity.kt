@@ -274,7 +274,7 @@ class TradeOrderActivity : AppCompatActivity() {
     private fun startTrailingStopService(stopPercent: Double) {
         val intent = Intent(applicationContext, TrailingStopService::class.java)
         intent.putExtra(TSL_SERVICE_MARKET_NAME_PARAM, marketName)
-        intent.putExtra(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM, stopPercent)
+        intent.putExtra(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM, stopPercent / 100) /* divided by 100 to get percent */
         startService(intent)
         Log.d("trailingStopStrategy", "service started")
     }

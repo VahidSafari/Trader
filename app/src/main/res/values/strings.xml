@@ -11,4 +11,7 @@
     <string name="connection_problem">Could not connect to server</string>
     <string name="stop_percent">Stop Percent</string>
     <string name="trailing_stop_loss">Trailing Stop Loss</string>
+    <string name="current_market_price">current market price</string>
+    <string name="profit">profit</string>
+    <string name="tsl_value">TSL value</string>
 </resources>

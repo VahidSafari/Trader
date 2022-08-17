@@ -6,14 +6,15 @@ data class MarketTrailingStopModel(
     val marketName: String,
     val stopPercent: Double,
     val lastSeenPrice: Double,
-    val maxSeenPrice: Double
+    val tslPrice: Double,
+    val maxSeenPrice: Double,
 ) {
 
     fun toTrailingStopLossView(): TrailingStopLossView =
         TrailingStopLossView(
             marketName = marketName,
             currentPrice = lastSeenPrice,
-            lastPriceToMaxSeenPriceRatio = lastSeenPrice / maxSeenPrice
+            tslPrice = tslPrice
         )
 
 }

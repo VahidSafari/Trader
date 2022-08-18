@@ -22,7 +22,7 @@ class TSLAdapter : ListAdapter<TrailingStopLossView, TSLAdapter.TSLViewHolder>(o
         newItem: TrailingStopLossView
     ): Boolean {
         return oldItem.currentPrice == newItem.currentPrice &&
-                oldItem.lastPriceToMaxSeenPriceRatio == newItem.lastPriceToMaxSeenPriceRatio
+                oldItem.tslPrice == newItem.tslPrice
     }
 }) {
 

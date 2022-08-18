@@ -237,7 +237,9 @@ class TrailingStopService : LifecycleService() {
                                 newMarketWithTick.first
                             )
 
-                            getTrailingStopViewModel(application).marketsToRemove.add(newMarketWithTick.first)
+                            getTrailingStopViewModel(application).marketsToRemove.add(
+                                newMarketWithTick.first
+                            )
 
                         }
 
@@ -261,7 +263,10 @@ class TrailingStopService : LifecycleService() {
 
                     }
 
-                    if (!getTrailingStopViewModel(application).marketsToRemove.contains(newMarketWithTick.first)) {
+                    if (!getTrailingStopViewModel(application).marketsToRemove.contains(
+                            newMarketWithTick.first
+                        )
+                    ) {
                         getTrailingStopViewModel(application).updateSingleTrailingStopModel(
                             newMarketWithTick.first,
                             currentMarketModel.copy(lastSeenPrice = buyValue)
@@ -271,7 +276,10 @@ class TrailingStopService : LifecycleService() {
                     if (isMaxUpdateNeeded) {
                         getTrailingStopViewModel(application).updateSingleTrailingStopModel(
                             newMarketWithTick.first,
-                            currentMarketModel.copy(maxSeenPrice = buyValue)
+                            currentMarketModel.copy(
+                                maxSeenPrice = buyValue,
+                                tslPrice = currentMarketModel.maxSeenPrice * (1 - currentMarketModel.stopPercent)
+                            )
                         )
                     }
 
@@ -333,25 +341,22 @@ class TrailingStopService : LifecycleService() {
     @Synchronized
     private fun getMarketInfoInAnInterval() {
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                while (isActive) {
-                    getTrailingStopViewModel(application).runningTSLs.value?.forEach { marketWithStopPercent ->
-                        try {
-                            marketsInfoStateFlow.emit(
-                                Pair(
-                                    marketWithStopPercent.key,
-                                    marketRepository.getSingleMarketStatistics(marketWithStopPercent.key)
-                                )
+            while (isActive) {
+                Log.d(TAG, getTrailingStopViewModel(application).runningTSLs.value.toString())
+                getTrailingStopViewModel(application).runningTSLs.value?.forEach { marketWithStopPercent ->
+                    try {
+                        marketsInfoStateFlow.emit(
+                            Pair(
+                                marketWithStopPercent.key,
+                                marketRepository.getSingleMarketStatistics(marketWithStopPercent.key)
                             )
-                        } catch (e: Exception) {
-                            throw e
-                        } finally {
-                            delay(timeFrameInMilliseconds)
-                        }
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    } finally {
+                        delay(timeFrameInMilliseconds)
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }

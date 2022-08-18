@@ -3,13 +3,16 @@ package com.safari.traderbot.service
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 @HiltViewModel
 class TrailingStopViewModel @Inject constructor(): ViewModel() {
 
     // default value is used to prevent null pointer crashes
-    val runningTSLs = MutableLiveData<MutableMap<String, MarketTrailingStopModel>>(mutableMapOf())
+    val runningTSLs = MutableLiveData<ConcurrentHashMap<String, MarketTrailingStopModel>>(
+        ConcurrentHashMap()
+    )
 
     val marketsToRemove = mutableListOf<String>()
 
@@ -19,7 +22,7 @@ class TrailingStopViewModel @Inject constructor(): ViewModel() {
     ) {
         val marketTrailingStopModels = runningTSLs.value!!
         marketTrailingStopModels[marketName] = newMarketTrailingStopModel
-        runningTSLs.value = HashMap(marketTrailingStopModels)
+        runningTSLs.value = ConcurrentHashMap(marketTrailingStopModels)
     }
 
     fun removeSingleTrailingStopModel(
@@ -27,7 +30,7 @@ class TrailingStopViewModel @Inject constructor(): ViewModel() {
     ) {
         val marketTrailingStopModels = runningTSLs.value!!
         marketTrailingStopModels.remove(marketName)
-        runningTSLs.value = HashMap(marketTrailingStopModels)
+        runningTSLs.value = ConcurrentHashMap(marketTrailingStopModels)
     }
 
 }

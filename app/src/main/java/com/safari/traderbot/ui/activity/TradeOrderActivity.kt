@@ -124,7 +124,6 @@ class TradeOrderActivity : AppCompatActivity() {
 
     private fun showTrailingStopLossViews() {
         binding.typeDropDown.visibility = View.GONE
-        binding.tilAmount.visibility = View.GONE
         binding.submitOrderButton.visibility = View.GONE
 
         binding.tilStopPercent.visibility = View.VISIBLE
@@ -243,6 +242,22 @@ class TradeOrderActivity : AppCompatActivity() {
 
             try {
 
+                if (binding.amount.text.toString().isNotEmpty()) {
+                    val submitMarketOrder = marketRepository.putMarketOrder(
+                        MarketOrderParamView(
+                            marketName = marketName,
+                            orderType = "buy",
+                            selectedMarketOrderAmount = binding.amount.text.toString().toDouble(),
+                            tonce = System.currentTimeMillis()
+                        )
+                    )
+
+                    if (!submitMarketOrder.isSuccessful()) {
+                        showSnackBar("try again :(")
+                        return@launch
+                    }
+                }
+
                 val balanceResponse = accountDataSource.getBalanceInfo().data
 
                 val balanceInfo: MarketBalanceInfo? =
@@ -255,9 +270,7 @@ class TradeOrderActivity : AppCompatActivity() {
 
                 val marketDetail = marketViewModel.getMarketDetail(marketName)
 
-                if (balanceInfo != null &&
-                    singleMarketStatistics != null &&
-                    balanceInfo.available.toDouble() >= marketDetail.data?.minAmount!!.toDouble()
+                if (balanceInfo != null && balanceInfo.available.toDouble() >= marketDetail.data?.minAmount!!.toDouble()
                 ) {
                     startTrailingStopService(binding.tvStopPercent.text.toString().toDouble())
                 } else {

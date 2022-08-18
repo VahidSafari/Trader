@@ -121,6 +121,8 @@ class TrailingStopService : LifecycleService() {
         lifecycleScope.launch {
             marketsInfoStateFlow.collect { newMarketWithTick ->
 
+                if (getTrailingStopViewModel(application).runningTSLs.value.isNullOrEmpty()) return@collect
+
                 // TODO: request for user account balance for the market
                 //  and cancel trailing stop loss if the balance is insufficient
                 //  for that specific market

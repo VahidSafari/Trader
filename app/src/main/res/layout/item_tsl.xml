@@ -60,7 +60,7 @@
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text="@{String.valueOf(tslView.currentPrice)}"
+                android:text='@{String.format("%.4f", tslView.currentPrice)}'
                 tools:text="0.19992" />
 
 
@@ -101,7 +101,7 @@
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text="@{String.valueOf(tslView.tslPrice)}"
+                android:text='@{String.format("%.4f", tslView.tslPrice)}'
                 tools:text="0.19992" />
 
         </androidx.cardview.widget.CardView>
@@ -141,7 +141,7 @@
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text="@{String.valueOf(tslView.tslPrice - tslView.currentPrice)}"
+                android:text='@{String.format("%.4f", tslView.currentPrice - tslView.tslPrice)}'
                 tools:text="0.19992" />
 
         </androidx.cardview.widget.CardView>

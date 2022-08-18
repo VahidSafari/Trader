@@ -21,7 +21,6 @@ import com.safari.traderbot.model.balanceinfo.BalanceInfo
 import com.safari.traderbot.model.balanceinfo.MarketBalanceInfo
 import com.safari.traderbot.model.marketorder.MarketOrderParamView
 import com.safari.traderbot.model.marketorder.MarketOrderResponse
-import com.safari.traderbot.network.CoinexService
 import com.safari.traderbot.network.CoinexStatusCode
 import com.safari.traderbot.rest.StockApi
 import com.safari.traderbot.service.TrailingStopService
@@ -99,25 +98,27 @@ class TradeOrderActivity : AppCompatActivity() {
             R.layout.item_spinner,
             OrderMainType.getStringList()
         )
-        binding.tradeTypeDropDown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                when(parent?.getItemAtPosition(position).toString()) {
-                    OrderMainType.MARKET.value -> {
-                        showMarketOrderViews()
-                    }
-                    OrderMainType.TRAILING_STOP_LOSS.value -> {
-                        showTrailingStopLossViews()
-                    }
+        binding.tradeTypeDropDown.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    when (parent?.getItemAtPosition(position).toString()) {
+                        OrderMainType.MARKET.value -> {
+                            showMarketOrderViews()
+                        }
+                        OrderMainType.TRAILING_STOP_LOSS.value -> {
+                            showTrailingStopLossViews()
+                        }
 
+                    }
                 }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
 
     }
 
@@ -238,35 +239,39 @@ class TradeOrderActivity : AppCompatActivity() {
 
         resetAmountError()
 
-        try {
-            lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.IO) {
+
+            try {
 
                 val balanceResponse = accountDataSource.getBalanceInfo().data
 
-                    val balanceInfo: MarketBalanceInfo? =
-                        readInstanceProperty<MarketBalanceInfo, BalanceInfo>(
-                            balanceResponse!!,
-                            extractCurrentMarketName(binding.marketName!!)
-                        )
+                val balanceInfo: MarketBalanceInfo? =
+                    readInstanceProperty<MarketBalanceInfo, BalanceInfo>(
+                        balanceResponse!!,
+                        extractCurrentMarketName(binding.marketName!!)
+                    )
 
-                val singleMarketStatistics = marketRepository.getSingleMarketStatistics(marketName).data.tickerDetails.buy
+                val singleMarketStatistics = marketRepository.getSingleMarketStatistics(marketName).data
+
+                val marketDetail = marketViewModel.getMarketDetail(marketName)
 
                 if (balanceInfo != null &&
                     singleMarketStatistics != null &&
-                    balanceInfo.available.toDouble() >= singleMarketStatistics.toDouble()) {
+                    balanceInfo.available.toDouble() >= marketDetail.data?.minAmount!!.toDouble()
+                ) {
                     startTrailingStopService(binding.tvStopPercent.text.toString().toDouble())
                 } else {
                     showSnackBar("not enough balance! required: ${singleMarketStatistics!!}")
                 }
 
+            } catch (e: java.lang.NumberFormatException) {
+                showSnackBar("Stop percent is wrong. Enter a number in [0-100] range.")
+                e.printStackTrace()
+            } catch (e: Exception) {
+                showSnackBar("Unknown exception occurred. try again!")
+                e.printStackTrace()
             }
 
-        } catch (e: java.lang.NumberFormatException) {
-            showSnackBar("Stop percent is wrong. Enter a number in [0-100] range.")
-            e.printStackTrace()
-        } catch (e: Exception) {
-            showSnackBar("Unknown exception occurred. try again!")
-            e.printStackTrace()
         }
 
     }
@@ -274,7 +279,10 @@ class TradeOrderActivity : AppCompatActivity() {
     private fun startTrailingStopService(stopPercent: Double) {
         val intent = Intent(applicationContext, TrailingStopService::class.java)
         intent.putExtra(TSL_SERVICE_MARKET_NAME_PARAM, marketName)
-        intent.putExtra(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM, stopPercent / 100) /* divided by 100 to get percent */
+        intent.putExtra(
+            TSL_SERVICE_MARKET_STOP_PERCENT_PARAM,
+            stopPercent / 100
+        ) /* divided by 100 to get percent */
         startService(intent)
         Log.d("trailingStopStrategy", "service started")
     }

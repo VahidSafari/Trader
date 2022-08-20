@@ -90,6 +90,8 @@ class TrailingStopService : LifecycleService() {
     private fun extractParamValues(bundle: Bundle?) {
         val marketNameParam = bundle?.getString(TSL_SERVICE_MARKET_NAME_PARAM)
         val stopPercentParam = bundle?.getDouble(TSL_SERVICE_MARKET_STOP_PERCENT_PARAM)
+        Log.d(TAG, "marketNameParam: $marketNameParam")
+        Log.d(TAG, "StopPercentParam: $stopPercentParam")
         if (marketNameParam != null && stopPercentParam != null) {
             if (getTrailingStopViewModel(application).runningTSLs.value?.containsKey(marketNameParam) == true) {
                 val newMarketModel =
@@ -100,6 +102,7 @@ class TrailingStopService : LifecycleService() {
                     marketNameParam,
                     newMarketModel
                 )
+                Log.d(TAG, "updated: " + getTrailingStopViewModel(application).runningTSLs.value)
             } else {
                 val newMarketModel =
                     MarketTrailingStopModel(marketNameParam, stopPercentParam, -1.0, -1.0, -1.0)
@@ -107,6 +110,7 @@ class TrailingStopService : LifecycleService() {
                     marketNameParam,
                     newMarketModel
                 )
+                Log.d(TAG, "inserted: " + getTrailingStopViewModel(application).runningTSLs.value)
             }
         }
         getTrailingStopViewModel(application).marketsToRemove.remove(marketNameParam)
@@ -280,7 +284,7 @@ class TrailingStopService : LifecycleService() {
                             newMarketWithTick.first,
                             currentMarketModel.copy(
                                 maxSeenPrice = buyValue,
-                                tslPrice = currentMarketModel.maxSeenPrice * (1 - currentMarketModel.stopPercent)
+                                tslPrice = buyValue * (1 - currentMarketModel.stopPercent)
                             )
                         )
                     }

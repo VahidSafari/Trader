@@ -32,12 +32,14 @@ class TrailingStopLossFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity?.let {
-            tslViewModel = TrailingStopService.getTrailingStopViewModel(it.application)
+        activity?.let { activity ->
+            tslViewModel = TrailingStopService.getTrailingStopViewModel(activity.application)
             tslAdapter = TSLAdapter()
             binding.tslAdapter = tslAdapter
             tslViewModel.runningTSLs.observe(viewLifecycleOwner) { tslMap ->
-                tslAdapter.submitList(tslMap.values.map { tslModel -> tslModel.toTrailingStopLossView() })
+                tslAdapter.submitList(
+                    tslMap.values.map { tslModel -> tslModel.toTrailingStopLossView() }
+                )
             }
         }
 

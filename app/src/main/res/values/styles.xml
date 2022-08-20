@@ -16,7 +16,7 @@
     <style name="Theme.TraderBot.Text.Indicator" parent="Widget.MaterialComponents.TextView">
         <item name="android:fontFamily">@font/roboto_thin</item>
         <item name="android:textColor">@color/dark_grey</item>
-        <item name="android:textSize">6sp</item>
+        <item name="android:textSize">10sp</item>
     </style>
 
     <style name="Theme.TraderBot.Text.Title" parent="Widget.MaterialComponents.TextView">

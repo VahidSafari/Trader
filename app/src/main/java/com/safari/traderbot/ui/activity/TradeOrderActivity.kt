@@ -157,7 +157,6 @@ class TradeOrderActivity : AppCompatActivity() {
         binding.submitOrderButton.setOnClickListener { onSubmitOrderClicked() }
         binding.submitTrailingStopOrderButton.setOnClickListener {
             onTrailingStopButtonClicked()
-            onTrailingStopButtonClicked()
         }
         setAmountListener()
     }

@@ -60,7 +60,7 @@
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text='@{String.format("%.4f", tslView.currentPrice)}'
+                android:text='@{tslView.currentPrice > 0 ? String.format("%.4f", tslView.currentPrice) : "NAN"}'
                 tools:text="0.19992" />
 
 
@@ -101,7 +101,7 @@
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text='@{String.format("%.4f", tslView.tslPrice)}'
+                android:text='@{tslView.tslPrice > 0 ? String.format("%.4f", tslView.tslPrice) : "Nan"}'
                 tools:text="0.19992" />
 
         </androidx.cardview.widget.CardView>
@@ -141,7 +141,7 @@
                 android:layout_gravity="center"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text='@{String.format("%.4f", tslView.currentPrice - tslView.tslPrice)}'
+                android:text='@{tslView.currentPrice > 0 ? String.format("%.4f", tslView.currentPrice - tslView.tslPrice): "Nan"}'
                 tools:text="0.19992" />
 
         </androidx.cardview.widget.CardView>
